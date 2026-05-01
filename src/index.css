@@ -229,8 +229,13 @@ a { color: var(--accent); text-decoration: none; }
    CLASSROOM FRAME
    ========================================================= */
 .cc-frame {
-  height: 100vh; display: flex; flex-direction: column;
+  /* Use dvh (dynamic viewport height) for Android Chrome address bar */
+  height: 100dvh;
+  height: 100vh; /* fallback for older Android */
+  display: flex; flex-direction: column;
   background: var(--bg-900);
+  overflow: hidden; /* prevent any child from causing scroll */
+  max-width: 100vw; /* no horizontal overflow */
 }
 
 /* =========================================================
@@ -253,7 +258,11 @@ a { color: var(--accent); text-decoration: none; }
 .cc-topbar-subject { color: var(--text-secondary); font-size: var(--text-sm); white-space: nowrap; }
 .cc-topbar-date { color: var(--text-muted); font-size: var(--text-xs); white-space: nowrap; }
 
-.cc-topbar-moments { display: flex; gap: 6px; flex: 1; justify-content: center; overflow: hidden; }
+/* Prevent moment pills from overflowing topbar on narrow screens */
+.cc-topbar-moments {
+  display: flex; gap: 6px; flex: 1; justify-content: center;
+  overflow: hidden; min-width: 0;
+}
 .cc-moment-pill {
   display: flex; align-items: center; gap: clamp(5px, 0.5vw, 10px);
   background: var(--bg-700); border: 1px solid var(--border);
@@ -303,7 +312,10 @@ a { color: var(--accent); text-decoration: none; }
 /* =========================================================
    MOMENT CANVAS
    ========================================================= */
-.cc-canvas { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.cc-canvas {
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden; min-height: 0; /* critical: allows flex child to shrink */
+}
 .cc-canvas-header {
   display: flex; align-items: center; gap: 16px;
   padding: 18px var(--canvas-padding) 14px;
@@ -318,7 +330,14 @@ a { color: var(--accent); text-decoration: none; }
 .cc-canvas-moment-title { font-size: var(--text-lg); font-weight: 700; flex: 1; }
 .cc-canvas-time { color: var(--text-muted); font-size: var(--text-sm); font-family: var(--font-mono); }
 
-.cc-canvas-content { flex: 1; overflow-y: auto; padding: var(--canvas-padding); }
+.cc-canvas-content {
+  flex: 1; overflow-y: auto; overflow-x: hidden; /* no horizontal scroll */
+  padding: var(--canvas-padding);
+  min-height: 0; /* critical for Firefox + Android */
+  /* Smooth scroll on touch */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
 
 .cc-rich-content {
   max-width: clamp(600px, 70vw, 1100px); margin: 0 auto;
