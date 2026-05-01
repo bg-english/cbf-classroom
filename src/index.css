@@ -1,0 +1,306 @@
+/* =========================================================
+   CBF Classroom — Global Styles
+   Dark theme based on eta_classroom_design.html palette
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg-900: #0a0e1a;
+  --bg-800: #111827;
+  --bg-700: #1a2235;
+  --bg-600: #232d42;
+  --bg-500: #2d3a52;
+  --border: rgba(255,255,255,0.08);
+  --border-light: rgba(255,255,255,0.15);
+
+  --text-primary: #f0f4ff;
+  --text-secondary: #8b9cc8;
+  --text-muted: #4a5578;
+
+  --accent: #4f8ef7;
+  --accent-hover: #6ba3ff;
+
+  --success: #4CAF50;
+  --warning: #F79646;
+  --danger: #C0504D;
+
+  --topbar-h: 56px;
+  --canvas-padding: 24px;
+
+  --font-ui: 'Outfit', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-900);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { cursor: pointer; font-family: inherit; }
+input, textarea { font-family: inherit; }
+a { color: var(--accent); text-decoration: none; }
+
+/* =========================================================
+   LOADING SCREEN
+   ========================================================= */
+.cc-loading-screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: var(--bg-900);
+}
+.cc-loading-logo {
+  font-family: var(--font-mono);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.2em;
+}
+.cc-loading-text { color: var(--text-secondary); font-size: 0.9rem; }
+.cc-loading-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.cc-status-message {
+  background: var(--bg-700); border: 1px solid var(--border);
+  border-radius: 12px; padding: 32px; text-align: center; max-width: 400px;
+}
+.cc-status-message h2 { margin-bottom: 8px; }
+.cc-status-message p { color: var(--text-secondary); margin-bottom: 16px; }
+.cc-status-message button {
+  background: var(--bg-500); border: 1px solid var(--border-light);
+  color: var(--text-primary); padding: 8px 20px; border-radius: 8px;
+}
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+.cc-login-screen {
+  height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-900);
+  background-image: radial-gradient(ellipse at 20% 50%, rgba(79,142,247,0.08) 0%, transparent 60%);
+}
+.cc-login-card {
+  background: var(--bg-800); border: 1px solid var(--border);
+  border-radius: 16px; padding: 40px; width: 380px;
+  max-width: calc(100vw - 32px);
+}
+.cc-login-header { text-align: center; margin-bottom: 28px; }
+.cc-login-logo {
+  font-family: var(--font-mono); font-size: 2rem; font-weight: 700;
+  color: var(--accent); letter-spacing: 0.2em; margin-bottom: 8px;
+}
+.cc-login-header h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 4px; }
+.cc-login-header p { color: var(--text-secondary); font-size: 0.85rem; }
+.cc-login-form { display: flex; flex-direction: column; gap: 12px; }
+.cc-login-form input {
+  background: var(--bg-700); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text-primary); padding: 12px 14px;
+  font-size: 0.95rem; transition: border-color 0.2s;
+}
+.cc-login-form input:focus { outline: none; border-color: var(--accent); }
+.cc-login-form button {
+  background: var(--accent); border: none; border-radius: 8px;
+  color: #fff; padding: 12px; font-size: 0.95rem; font-weight: 600;
+  margin-top: 4px; transition: background 0.2s;
+}
+.cc-login-form button:hover:not(:disabled) { background: var(--accent-hover); }
+.cc-login-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+.cc-login-error {
+  background: rgba(192,80,77,0.15); border: 1px solid rgba(192,80,77,0.4);
+  border-radius: 6px; color: #ff9f9f; padding: 8px 12px; font-size: 0.85rem;
+}
+.cc-login-hint { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 16px; }
+
+/* =========================================================
+   CLASS PICKER
+   ========================================================= */
+.cc-picker-screen {
+  height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--bg-900);
+}
+.cc-picker-card {
+  background: var(--bg-800); border: 1px solid var(--border);
+  border-radius: 16px; width: 460px; max-width: calc(100vw - 32px);
+  max-height: 85vh; overflow-y: auto;
+}
+.cc-picker-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+}
+.cc-picker-logo {
+  font-family: var(--font-mono); font-size: 1rem; color: var(--accent);
+  font-weight: 700; letter-spacing: 0.1em;
+}
+.cc-picker-signout {
+  background: none; border: 1px solid var(--border-light);
+  color: var(--text-secondary); border-radius: 6px; padding: 4px 12px; font-size: 0.8rem;
+}
+.cc-picker-greeting { padding: 20px 24px 8px; }
+.cc-picker-greeting h2 { font-size: 1.2rem; margin-bottom: 6px; }
+.cc-picker-greeting p { color: var(--text-secondary); font-size: 0.9rem; }
+.cc-picker-empty { padding: 24px; color: var(--text-secondary); font-size: 0.9rem; }
+.cc-picker-list { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.cc-picker-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-700); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px; text-align: left;
+  color: var(--text-primary); transition: background 0.15s, border-color 0.15s;
+}
+.cc-picker-item:hover { background: var(--bg-600); border-color: var(--accent); }
+.cc-picker-grade { font-weight: 600; font-size: 0.95rem; min-width: 80px; }
+.cc-picker-subject { flex: 1; color: var(--text-secondary); font-size: 0.9rem; }
+.cc-picker-arrow { color: var(--accent); font-size: 1.1rem; }
+
+/* =========================================================
+   CLASSROOM FRAME
+   ========================================================= */
+.cc-frame {
+  height: 100vh; display: flex; flex-direction: column;
+  background: var(--bg-900);
+}
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+.cc-topbar {
+  height: var(--topbar-h); min-height: var(--topbar-h);
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 16px; background: var(--bg-800);
+  border-bottom: 1px solid var(--border); z-index: 100;
+}
+.cc-topbar-left { display: flex; align-items: center; gap: 12px; flex-shrink: 0; min-width: 0; }
+.cc-topbar-brand {
+  font-family: var(--font-mono); font-size: 1rem; font-weight: 700;
+  color: var(--accent); letter-spacing: 0.15em; flex-shrink: 0;
+}
+.cc-topbar-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.cc-topbar-grade { font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
+.cc-topbar-subject { color: var(--text-secondary); font-size: 0.75rem; white-space: nowrap; }
+.cc-topbar-date { color: var(--text-muted); font-size: 0.7rem; white-space: nowrap; }
+
+.cc-topbar-moments { display: flex; gap: 4px; flex: 1; justify-content: center; overflow: hidden; }
+.cc-moment-pill {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--bg-700); border: 1px solid var(--border);
+  border-radius: 20px; color: var(--text-secondary);
+  padding: 4px 10px 4px 6px; font-size: 0.75rem; font-weight: 500;
+  transition: all 0.2s; white-space: nowrap;
+}
+.cc-moment-pill:hover { border-color: var(--moment-color); color: var(--text-primary); }
+.cc-moment-pill.done { opacity: 0.5; }
+.cc-moment-pill.active {
+  background: var(--moment-color); border-color: var(--moment-color);
+  color: #fff; font-weight: 600;
+}
+.cc-moment-num {
+  width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.15); border-radius: 50%;
+  font-size: 0.7rem; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;
+}
+.cc-moment-label { max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+
+.cc-topbar-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.cc-topbar-clock { display: flex; flex-direction: column; align-items: flex-end; }
+.cc-clock { font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-primary); }
+.cc-elapsed { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); }
+.cc-topbar-menu-wrap { position: relative; }
+.cc-topbar-menu-btn {
+  background: var(--bg-700); border: 1px solid var(--border);
+  color: var(--text-secondary); border-radius: 8px;
+  width: 32px; height: 32px; font-size: 1.2rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.cc-topbar-menu-btn:hover { background: var(--bg-500); color: var(--text-primary); }
+.cc-topbar-menu {
+  position: absolute; right: 0; top: calc(100% + 6px);
+  background: var(--bg-700); border: 1px solid var(--border-light);
+  border-radius: 10px; min-width: 160px; overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 999;
+}
+.cc-topbar-menu button {
+  display: block; width: 100%; padding: 10px 14px; text-align: left;
+  background: none; border: none; color: var(--text-primary);
+  font-size: 0.9rem; transition: background 0.15s;
+}
+.cc-topbar-menu button:hover { background: var(--bg-600); }
+
+/* =========================================================
+   MOMENT CANVAS
+   ========================================================= */
+.cc-canvas { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.cc-canvas-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px var(--canvas-padding) 12px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.cc-canvas-moment-badge {
+  padding: 3px 12px; border-radius: 12px; color: #fff;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+}
+.cc-canvas-moment-title { font-size: 1.1rem; font-weight: 600; flex: 1; }
+.cc-canvas-time { color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); }
+
+.cc-canvas-content { flex: 1; overflow-y: auto; padding: var(--canvas-padding); }
+
+.cc-rich-content {
+  max-width: 860px; margin: 0 auto;
+  color: var(--text-primary); font-size: 1rem; line-height: 1.7;
+}
+.cc-rich-content h1, .cc-rich-content h2, .cc-rich-content h3 { margin-top: 1.2em; margin-bottom: 0.4em; }
+.cc-rich-content p { margin-bottom: 0.7em; }
+.cc-rich-content ul, .cc-rich-content ol { padding-left: 1.5em; margin-bottom: 0.7em; }
+.cc-rich-content strong { color: #fff; }
+.cc-rich-content em { color: var(--text-secondary); }
+
+.cc-canvas-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 12px; color: var(--text-secondary); text-align: center; padding: 40px;
+}
+.cc-canvas-empty-icon { font-size: 3rem; opacity: 0.4; }
+.cc-canvas-empty-hint { font-size: 0.85rem; color: var(--text-muted); max-width: 320px; }
+
+.cc-canvas-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px var(--canvas-padding); border-top: 1px solid var(--border);
+  flex-shrink: 0; background: var(--bg-800);
+}
+.cc-nav-btn {
+  background: var(--bg-600); border: 1px solid var(--border);
+  color: var(--text-primary); border-radius: 8px;
+  padding: 8px 20px; font-size: 0.9rem; font-weight: 500; transition: all 0.15s;
+}
+.cc-nav-btn:hover:not(:disabled) { background: var(--bg-500); border-color: var(--border-light); }
+.cc-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.cc-nav-next { color: #fff; border-color: transparent; }
+.cc-nav-next:hover:not(:disabled) { filter: brightness(1.1); }
+.cc-canvas-plan-info { flex: 1; text-align: center; }
+.cc-plan-label { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); }
+.cc-plan-none { color: var(--warning); }
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 600px) {
+  .cc-moment-label { display: none; }
+  .cc-topbar-date { display: none; }
+  :root { --canvas-padding: 14px; }
+}
