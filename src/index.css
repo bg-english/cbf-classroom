@@ -25,11 +25,23 @@
   --warning: #F79646;
   --danger: #C0504D;
 
-  --topbar-h: 56px;
-  --canvas-padding: 24px;
+  /* 1920×1080 @ 100" touch screen */
+  --topbar-h: 68px;
+  --canvas-padding: 40px;
+  --font-size-base: 17px;
+  --touch-min: 52px; /* minimum touch target */
 
   --font-ui: 'Outfit', sans-serif;
   --font-mono: 'Space Mono', monospace;
+}
+
+/* 1920×1080 large screen optimizations */
+@media (min-width: 1440px) {
+  :root {
+    --topbar-h: 72px;
+    --canvas-padding: 56px;
+    --font-size-base: 18px;
+  }
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,14 +52,54 @@ html, body, #root {
   background: var(--bg-900);
   color: var(--text-primary);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: var(--font-size-base, 17px);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  /* Prevent text selection on touch (teacher tool, not student) */
+  -webkit-user-select: none;
+  user-select: none;
+  /* Remove tap highlight on Android */
+  -webkit-tap-highlight-color: transparent;
+  /* Prevent pull-to-refresh on Android Chrome */
+  overscroll-behavior: none;
 }
 
-button { cursor: pointer; font-family: inherit; }
+/* Allow text selection in content areas */
+.cc-rich-content, .ap-verse-text, .ap-board-value {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  /* Ensure minimum touch target on Android */
+  min-height: var(--touch-min, 52px);
+  min-width: var(--touch-min, 52px);
+  touch-action: manipulation; /* prevent double-tap zoom */
+}
 input, textarea { font-family: inherit; }
 a { color: var(--accent); text-decoration: none; }
+
+/* Remove hover effects on touch — they stick on Android */
+@media (hover: none) {
+  .cc-picker-item:hover,
+  .cc-nav-btn:hover:not(:disabled),
+  .cc-topbar-menu-btn:hover,
+  .cc-moment-pill:hover,
+  .cc-topbar-menu button:hover {
+    background: unset;
+    border-color: unset;
+    filter: unset;
+  }
+  /* Use active states instead */
+  .cc-picker-item:active { background: var(--bg-600); border-color: var(--accent); }
+  .cc-nav-btn:active:not(:disabled) { background: var(--bg-500); }
+  .cc-topbar-menu-btn:active { background: var(--bg-500); }
+  .cc-moment-pill:active { opacity: 0.8; }
+  .cc-topbar-menu button:active { background: var(--bg-600); }
+  .cc-login-form button:active:not(:disabled) { background: var(--accent-hover); }
+}
 
 /* =========================================================
    LOADING SCREEN
@@ -183,93 +235,101 @@ a { color: var(--accent); text-decoration: none; }
    ========================================================= */
 .cc-topbar {
   height: var(--topbar-h); min-height: var(--topbar-h);
-  display: flex; align-items: center; gap: 12px;
-  padding: 0 16px; background: var(--bg-800);
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 24px; background: var(--bg-800);
   border-bottom: 1px solid var(--border); z-index: 100;
+  touch-action: none; /* prevent accidental scroll in topbar */
 }
-.cc-topbar-left { display: flex; align-items: center; gap: 12px; flex-shrink: 0; min-width: 0; }
+.cc-topbar-left { display: flex; align-items: center; gap: 14px; flex-shrink: 0; min-width: 0; }
 .cc-topbar-brand {
-  font-family: var(--font-mono); font-size: 1rem; font-weight: 700;
+  font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700;
   color: var(--accent); letter-spacing: 0.15em; flex-shrink: 0;
 }
-.cc-topbar-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.cc-topbar-grade { font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
-.cc-topbar-subject { color: var(--text-secondary); font-size: 0.75rem; white-space: nowrap; }
-.cc-topbar-date { color: var(--text-muted); font-size: 0.7rem; white-space: nowrap; }
+.cc-topbar-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cc-topbar-grade { font-weight: 700; font-size: 1rem; white-space: nowrap; }
+.cc-topbar-subject { color: var(--text-secondary); font-size: 0.85rem; white-space: nowrap; }
+.cc-topbar-date { color: var(--text-muted); font-size: 0.75rem; white-space: nowrap; }
 
-.cc-topbar-moments { display: flex; gap: 4px; flex: 1; justify-content: center; overflow: hidden; }
+.cc-topbar-moments { display: flex; gap: 6px; flex: 1; justify-content: center; overflow: hidden; }
 .cc-moment-pill {
-  display: flex; align-items: center; gap: 5px;
+  display: flex; align-items: center; gap: 8px;
   background: var(--bg-700); border: 1px solid var(--border);
-  border-radius: 20px; color: var(--text-secondary);
-  padding: 4px 10px 4px 6px; font-size: 0.75rem; font-weight: 500;
-  transition: all 0.2s; white-space: nowrap;
+  border-radius: 24px; color: var(--text-secondary);
+  padding: 8px 16px 8px 8px; font-size: 0.85rem; font-weight: 500;
+  white-space: nowrap; min-height: var(--touch-min);
+  transition: background 0.15s, border-color 0.15s;
 }
-.cc-moment-pill:hover { border-color: var(--moment-color); color: var(--text-primary); }
-.cc-moment-pill.done { opacity: 0.5; }
+.cc-moment-pill.done { opacity: 0.45; }
 .cc-moment-pill.active {
   background: var(--moment-color); border-color: var(--moment-color);
-  color: #fff; font-weight: 600;
+  color: #fff; font-weight: 700;
+  box-shadow: 0 0 16px rgba(0,0,0,0.3);
 }
 .cc-moment-num {
-  width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,0.15); border-radius: 50%;
-  font-size: 0.7rem; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;
+  width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.18); border-radius: 50%;
+  font-size: 0.8rem; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0;
 }
-.cc-moment-label { max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+.cc-moment-label { max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
 
-.cc-topbar-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.cc-topbar-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
 .cc-topbar-clock { display: flex; flex-direction: column; align-items: flex-end; }
-.cc-clock { font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-primary); }
-.cc-elapsed { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); }
+.cc-clock { font-family: var(--font-mono); font-size: 1rem; color: var(--text-primary); }
+.cc-elapsed { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); }
 .cc-topbar-menu-wrap { position: relative; }
 .cc-topbar-menu-btn {
   background: var(--bg-700); border: 1px solid var(--border);
-  color: var(--text-secondary); border-radius: 8px;
-  width: 32px; height: 32px; font-size: 1.2rem;
+  color: var(--text-secondary); border-radius: 10px;
+  width: var(--touch-min); height: var(--touch-min); font-size: 1.4rem;
   display: flex; align-items: center; justify-content: center;
 }
-.cc-topbar-menu-btn:hover { background: var(--bg-500); color: var(--text-primary); }
 .cc-topbar-menu {
-  position: absolute; right: 0; top: calc(100% + 6px);
+  position: absolute; right: 0; top: calc(100% + 8px);
   background: var(--bg-700); border: 1px solid var(--border-light);
-  border-radius: 10px; min-width: 160px; overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 999;
+  border-radius: 12px; min-width: 200px; overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5); z-index: 999;
 }
 .cc-topbar-menu button {
-  display: block; width: 100%; padding: 10px 14px; text-align: left;
+  display: block; width: 100%; padding: 14px 18px; text-align: left;
   background: none; border: none; color: var(--text-primary);
-  font-size: 0.9rem; transition: background 0.15s;
+  font-size: 1rem; min-height: var(--touch-min);
 }
-.cc-topbar-menu button:hover { background: var(--bg-600); }
+.cc-topbar-menu button:active { background: var(--bg-600); }
 
 /* =========================================================
    MOMENT CANVAS
    ========================================================= */
 .cc-canvas { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .cc-canvas-header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 16px var(--canvas-padding) 12px;
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px var(--canvas-padding) 14px;
   border-bottom: 1px solid var(--border); flex-shrink: 0;
 }
 .cc-canvas-moment-badge {
-  padding: 3px 12px; border-radius: 12px; color: #fff;
-  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 5px 16px; border-radius: 14px; color: #fff;
+  font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
 }
-.cc-canvas-moment-title { font-size: 1.1rem; font-weight: 600; flex: 1; }
-.cc-canvas-time { color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); }
+.cc-canvas-moment-title { font-size: 1.3rem; font-weight: 700; flex: 1; }
+.cc-canvas-time { color: var(--text-muted); font-size: 0.9rem; font-family: var(--font-mono); }
 
 .cc-canvas-content { flex: 1; overflow-y: auto; padding: var(--canvas-padding); }
 
 .cc-rich-content {
-  max-width: 860px; margin: 0 auto;
-  color: var(--text-primary); font-size: 1rem; line-height: 1.7;
+  max-width: 960px; margin: 0 auto;
+  color: var(--text-primary); font-size: 1.1rem; line-height: 1.8;
 }
-.cc-rich-content h1, .cc-rich-content h2, .cc-rich-content h3 { margin-top: 1.2em; margin-bottom: 0.4em; }
-.cc-rich-content p { margin-bottom: 0.7em; }
-.cc-rich-content ul, .cc-rich-content ol { padding-left: 1.5em; margin-bottom: 0.7em; }
+.cc-rich-content h1 { font-size: 1.8rem; margin-top: 1.2em; margin-bottom: 0.5em; }
+.cc-rich-content h2 { font-size: 1.4rem; margin-top: 1.1em; margin-bottom: 0.4em; }
+.cc-rich-content h3 { font-size: 1.2rem; margin-top: 1em; margin-bottom: 0.3em; }
+.cc-rich-content p { margin-bottom: 0.8em; }
+.cc-rich-content ul, .cc-rich-content ol { padding-left: 1.8em; margin-bottom: 0.8em; }
+.cc-rich-content li { margin-bottom: 0.3em; }
 .cc-rich-content strong { color: #fff; }
 .cc-rich-content em { color: var(--text-secondary); }
+
+@media (min-width: 1440px) {
+  .cc-rich-content { font-size: 1.2rem; max-width: 1100px; }
+}
 
 .cc-canvas-empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -280,31 +340,40 @@ a { color: var(--accent); text-decoration: none; }
 
 .cc-canvas-nav {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px var(--canvas-padding); border-top: 1px solid var(--border);
+  padding: 14px var(--canvas-padding); border-top: 1px solid var(--border);
   flex-shrink: 0; background: var(--bg-800);
 }
 .cc-nav-btn {
   background: var(--bg-600); border: 1px solid var(--border);
-  color: var(--text-primary); border-radius: 8px;
-  padding: 8px 20px; font-size: 0.9rem; font-weight: 500; transition: all 0.15s;
+  color: var(--text-primary); border-radius: 12px;
+  padding: 0 32px; font-size: 1rem; font-weight: 600;
+  height: var(--touch-min); min-width: 140px;
+  touch-action: manipulation;
 }
-.cc-nav-btn:hover:not(:disabled) { background: var(--bg-500); border-color: var(--border-light); }
-.cc-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.cc-nav-next { color: #fff; border-color: transparent; }
-.cc-nav-next:hover:not(:disabled) { filter: brightness(1.1); }
+.cc-nav-btn:active:not(:disabled) { background: var(--bg-500); }
+.cc-nav-btn:disabled { opacity: 0.3; }
+.cc-nav-next { color: #fff; border-color: transparent; font-size: 1.05rem; }
+.cc-nav-next:active:not(:disabled) { filter: brightness(1.15); }
 .cc-canvas-plan-info { flex: 1; text-align: center; }
-.cc-plan-label { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); }
+.cc-plan-label { font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-mono); }
 .cc-plan-none { color: var(--warning); }
 
 /* =========================================================
    APERTURA DEVOCIONAL — Momento 1
    ========================================================= */
 .ap-container {
-  max-width: 860px;
+  max-width: 960px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
+}
+
+@media (min-width: 1440px) {
+  .ap-container { max-width: 1100px; gap: 28px; }
+  .ap-verse-text { font-size: 1.15rem; }
+  .ap-board-value { font-size: 1.05rem; }
+  .ap-board-indicator { font-size: 1rem; }
 }
 
 /* Tablero digital */
