@@ -4,13 +4,10 @@ import { supabase } from '../utils/supabase'
 import ClassPicker from '../components/ClassPicker'
 import ClassroomFrame from '../components/ClassroomFrame'
 
-/**
- * ClassroomApp — main entry after auth.
- * Resolves the current class automatically, then renders the classroom frame.
- */
 export default function ClassroomApp({ session, teacher }) {
   const [resolving, setResolving] = useState(true)
-  const [resolved, setResolved] = useState(null)       // { assignment, plan, todayKey, dayContent, combinedGrade }
+  const [resolved, setResolved] = useState(null)
+  const [classroomData, setClassroomData] = useState(null) // enriched data for moments
   const [assignments, setAssignments] = useState([])
   const [showPicker, setShowPicker] = useState(false)
 
@@ -22,10 +19,13 @@ export default function ClassroomApp({ session, teacher }) {
     setResolving(true)
     const result = await resolveCurrentClass(teacher)
     setResolved(result)
-
-    // Always load assignments for manual picker fallback
     const all = await loadTeacherAssignments(teacher)
     setAssignments(all)
+
+    if (result) {
+      const enriched = await loadEnrichedData(result)
+      setClassroomData(enriched)
+    }
 
     setResolving(false)
   }
@@ -34,13 +34,12 @@ export default function ClassroomApp({ session, teacher }) {
     setShowPicker(false)
     setResolving(true)
 
-    // Find lesson plan for the manually selected assignment
     const today = new Date().toISOString().split('T')[0]
     const combinedGrade = `${assignment.grade} ${assignment.section}`
 
     const { data: plans } = await supabase
       .from('lesson_plans')
-      .select('id, grade, subject, week_number, date_range, content, status, week_count')
+      .select('id, grade, subject, week_number, date_range, content, status, week_count, news_project_id')
       .eq('teacher_id', teacher.id)
       .eq('grade', combinedGrade)
       .eq('subject', assignment.subject)
@@ -49,23 +48,71 @@ export default function ClassroomApp({ session, teacher }) {
 
     const plan = plans?.[0] || null
     const dayContent = plan?.content?.days?.[today] || null
+    const result = { assignment, plan, todayKey: today, dayContent, combinedGrade, scheduleSlot: null }
 
-    setResolved({ assignment, plan, todayKey: today, dayContent, combinedGrade, scheduleSlot: null })
+    setResolved(result)
+    const enriched = await loadEnrichedData(result)
+    setClassroomData(enriched)
     setResolving(false)
   }
 
-  // Loading
+  /**
+   * Load extra data needed for classroom moments:
+   * - Monthly biblical principle
+   * - NEWS project biblical principle (from plan.news_project_id)
+   */
+  async function loadEnrichedData(result) {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1
+
+    // Fetch monthly principle
+    const { data: monthly } = await supabase
+      .from('school_monthly_principles')
+      .select('month_verse, month_verse_ref, indicator_principle')
+      .eq('school_id', teacher.school_id)
+      .eq('year', year)
+      .eq('month', month)
+      .single()
+
+    // Fetch NEWS project for biblical principle
+    let newsProject = null
+    const newsProjectId = result.plan?.news_project_id
+      || result.plan?.content?.objetivo?.news_project_id
+
+    if (newsProjectId) {
+      const { data } = await supabase
+        .from('news_projects')
+        .select('title, biblical_principle, indicator_verse_ref, biblical_reflection, target_indicador')
+        .eq('id', newsProjectId)
+        .single()
+      newsProject = data
+    }
+
+    return {
+      yearVerse: teacher.schools?.year_verse || null,
+      yearVerseRef: teacher.schools?.year_verse_ref || null,
+      monthVerse: monthly?.month_verse || null,
+      monthVerseRef: monthly?.month_verse_ref || null,
+      biblicalPrinciple: newsProject?.biblical_principle || null,
+      indicatorVerseRef: newsProject?.indicator_verse_ref || null,
+      biblicalReflection: newsProject?.biblical_reflection || null,
+      newsProjectTitle: newsProject?.title || null,
+      schoolName: teacher.schools?.name || 'Colegio Boston Flexible',
+      schoolLogo: teacher.schools?.logo_url || null,
+    }
+  }
+
   if (resolving) {
     return (
       <div className="cc-loading-screen">
         <div className="cc-loading-logo">ETA</div>
-        <p className="cc-loading-text">Detectando clase...</p>
+        <p className="cc-loading-text">Cargando aula...</p>
         <div className="cc-loading-spinner" />
       </div>
     )
   }
 
-  // Manual picker (no class detected or teacher requests change)
   if (showPicker || !resolved) {
     return (
       <ClassPicker
@@ -78,11 +125,11 @@ export default function ClassroomApp({ session, teacher }) {
     )
   }
 
-  // Classroom active
   return (
     <ClassroomFrame
       teacher={teacher}
       resolved={resolved}
+      classroomData={classroomData}
       onChangeClass={() => setShowPicker(true)}
       onSignOut={() => supabase.auth.signOut()}
     />

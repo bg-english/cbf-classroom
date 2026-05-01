@@ -297,10 +297,183 @@ a { color: var(--accent); text-decoration: none; }
 .cc-plan-none { color: var(--warning); }
 
 /* =========================================================
+   APERTURA DEVOCIONAL — Momento 1
+   ========================================================= */
+.ap-container {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Tablero digital */
+.ap-board {
+  background: var(--bg-700);
+  border: 1px solid var(--border);
+  border-left: 4px solid #C0504D;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ap-board-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(192,80,77,0.15);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ff9f9f;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.ap-board-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  padding: 1px;
+}
+.ap-board-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--bg-700);
+}
+.ap-board-full { grid-column: 1 / -1; }
+.ap-board-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.ap-board-value {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.ap-board-indicator {
+  color: #a8d8a8;
+  font-style: italic;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Versículos */
+.ap-verses { display: flex; flex-direction: column; gap: 14px; }
+
+.ap-verse {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.ap-verse-year { border-left: 4px solid #4f8ef7; }
+.ap-verse-month { border-left: 4px solid #9BBB59; }
+.ap-verse-indicator { border-left: 4px solid #8064A2; }
+
+.ap-verse-badge {
+  padding: 7px 14px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.ap-verse-year .ap-verse-badge { background: rgba(79,142,247,0.12); color: #7fb3ff; }
+.ap-verse-month .ap-verse-badge { background: rgba(155,187,89,0.12); color: #b8d98d; }
+.ap-verse-indicator .ap-verse-badge { background: rgba(128,100,162,0.12); color: #b49cd6; }
+
+.ap-verse-text {
+  margin: 0;
+  padding: 12px 16px 8px;
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--text-primary);
+  line-height: 1.7;
+  border: none;
+}
+.ap-verse-ref {
+  display: block;
+  padding: 0 16px 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: normal;
+  font-family: var(--font-mono);
+}
+.ap-verse-project {
+  padding: 0 16px 4px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.ap-verse-reflection {
+  padding: 8px 16px 12px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  line-height: 1.5;
+}
+.ap-verse-reflection span { color: #b49cd6; font-weight: 600; }
+
+.ap-empty-verses {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px;
+  background: var(--bg-700);
+  border: 1px dashed var(--border-light);
+  border-radius: 12px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+.ap-empty-icon { font-size: 2.5rem; opacity: 0.3; }
+.ap-empty-verses strong { color: var(--accent); }
+
+/* Section content (notas de apertura) */
+.ap-section-content {
+  background: var(--bg-700);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ap-section-label {
+  padding: 8px 14px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
+}
+.ap-section-content .cc-rich-content { padding: 14px 16px; }
+
+/* =========================================================
+   SECTION CONTENT — Moments 2–5
+   ========================================================= */
+.sc-container { max-width: 860px; margin: 0 auto; }
+.sc-images {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+.sc-images-1 { grid-template-columns: 1fr; }
+.sc-images-2 { grid-template-columns: 1fr 1fr; }
+.sc-images-3 { grid-template-columns: repeat(3, 1fr); }
+.sc-images-4 { grid-template-columns: repeat(2, 1fr); }
+.sc-image {
+  width: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+/* =========================================================
    RESPONSIVE
    ========================================================= */
 @media (max-width: 600px) {
   .cc-moment-label { display: none; }
   .cc-topbar-date { display: none; }
   :root { --canvas-padding: 14px; }
+  .ap-board-grid { grid-template-columns: 1fr; }
 }

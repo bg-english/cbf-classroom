@@ -1,14 +1,16 @@
+import AperturaDevocional from './AperturaDevocional'
+
 /**
- * MomentCanvas — the main content area.
- * Phase 0/1: renders lesson plan section content (HTML from RichEditor).
- * Phase 2: adds whiteboard, split-screen, slides modes.
+ * MomentCanvas — renders the appropriate content for each of the 5 moments.
+ *
+ * Momento 1 (Apertura): AperturaDevocional — versículos + tablero digital
+ * Momentos 2–5: HTML content from lesson_plan sections
  */
 export default function MomentCanvas({
-  moment, sectionContent, plan, dayContent,
+  moment, sectionContent, plan, dayContent, classroomData,
+  todayKey, combinedGrade, subject,
   onNext, onPrev, isFirst, isLast
 }) {
-  const hasContent = sectionContent?.content && sectionContent.content !== '<p></p>'
-
   return (
     <main className="cc-canvas" style={{ '--moment-color': moment.color }}>
 
@@ -25,26 +27,22 @@ export default function MomentCanvas({
 
       {/* Content area */}
       <div className="cc-canvas-content">
-        {hasContent ? (
-          <div
-            className="cc-rich-content"
-            dangerouslySetInnerHTML={{ __html: sectionContent.content }}
+        {moment.id === 1 ? (
+          <AperturaDevocional
+            classroomData={classroomData}
+            plan={plan}
+            dayContent={dayContent}
+            todayKey={todayKey}
+            combinedGrade={combinedGrade}
+            subject={subject}
           />
         ) : (
-          <div className="cc-canvas-empty">
-            <div className="cc-canvas-empty-icon">📋</div>
-            <p>No hay contenido para este momento.</p>
-            {!plan && (
-              <p className="cc-canvas-empty-hint">
-                Crea una guía en CBF Planner para que aparezca aquí.
-              </p>
-            )}
-            {plan && !dayContent && (
-              <p className="cc-canvas-empty-hint">
-                La guía existe pero no tiene contenido para hoy ({plan.date_range}).
-              </p>
-            )}
-          </div>
+          <SectionContent
+            moment={moment}
+            sectionContent={sectionContent}
+            plan={plan}
+            dayContent={dayContent}
+          />
         )}
       </div>
 
@@ -74,9 +72,68 @@ export default function MomentCanvas({
           disabled={isLast}
           style={{ background: moment.color }}
         >
-          {isLast ? 'Finalizar clase' : 'Siguiente →'}
+          {isLast ? '✓ Finalizar clase' : 'Siguiente →'}
         </button>
       </div>
     </main>
   )
+}
+
+/**
+ * SectionContent — renders HTML content from lesson_plan for moments 2–5
+ */
+function SectionContent({ moment, sectionContent, plan, dayContent }) {
+  const hasContent = sectionContent?.content && sectionContent.content !== '<p></p>'
+
+  if (hasContent) {
+    return (
+      <div className="sc-container">
+        <div
+          className="cc-rich-content"
+          dangerouslySetInnerHTML={{ __html: sectionContent.content }}
+        />
+
+        {/* Images */}
+        {sectionContent.images?.length > 0 && (
+          <div className={`sc-images sc-images-${sectionContent.images.length}`}>
+            {sectionContent.images.map((img, i) => (
+              <img key={i} src={img.url} alt={img.caption || ''} className="sc-image" />
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="cc-canvas-empty">
+      <div className="cc-canvas-empty-icon" style={{ color: moment.color }}>
+        {MOMENT_ICONS[moment.id] || '📋'}
+      </div>
+      <p>No hay contenido para <strong>{moment.label}</strong>.</p>
+      {!plan && (
+        <p className="cc-canvas-empty-hint">
+          Crea una guía en CBF Planner para que aparezca aquí.
+        </p>
+      )}
+      {plan && !dayContent && (
+        <p className="cc-canvas-empty-hint">
+          La guía <em>{plan.date_range}</em> no tiene contenido para hoy.
+        </p>
+      )}
+      {plan && dayContent && (
+        <p className="cc-canvas-empty-hint">
+          Esta sección está vacía en la guía. Edítala en CBF Planner.
+        </p>
+      )}
+    </div>
+  )
+}
+
+const MOMENT_ICONS = {
+  1: '✝',
+  2: '🗒',
+  3: '⚡',
+  4: '🎯',
+  5: '🚪',
 }
