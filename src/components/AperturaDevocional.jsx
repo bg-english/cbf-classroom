@@ -12,6 +12,7 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
   const objetivo = plan?.content?.objetivo || {}
   const indicadores = objetivo.indicadores || []
   const principio = objetivo.principio || null
+  const guideVerse = plan?.content?.verse || null
 
   const dateLabel = todayKey
     ? new Date(todayKey + 'T12:00:00').toLocaleDateString('es-CO', {
@@ -93,6 +94,17 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
           </div>
         )}
 
+        {/* Versículo de la Guía Semanal */}
+        {guideVerse?.text && (
+          <div className="ap-verse ap-verse-guide">
+            <div className="ap-verse-badge">��� Versículo de la Guía</div>
+            <blockquote className="ap-verse-text">{guideVerse.text}</blockquote>
+            {guideVerse.ref && (
+              <cite className="ap-verse-ref">{guideVerse.ref}</cite>
+            )}
+          </div>
+        )}
+
         {/* Principio Bíblico del Indicador */}
         {classroomData?.biblicalPrinciple && (
           <div className="ap-verse ap-verse-indicator">
@@ -123,7 +135,7 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
         )}
 
         {/* Fallback — sin datos configurados */}
-        {!classroomData?.yearVerse && !classroomData?.monthVerse && !classroomData?.biblicalPrinciple && !principio && (
+        {!classroomData?.yearVerse && !classroomData?.monthVerse && !guideVerse?.text && !classroomData?.biblicalPrinciple && !principio && (
           <div className="ap-empty-verses">
             <div className="ap-empty-icon">✝</div>
             <p>Configura el versículo del año en <strong>Ajustes</strong> y el versículo del mes en <strong>Principios</strong> dentro de CBF Planner.</p>

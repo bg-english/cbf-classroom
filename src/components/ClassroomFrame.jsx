@@ -3,11 +3,12 @@ import TopBar from './TopBar'
 import MomentCanvas from './MomentCanvas'
 
 const MOMENTS = [
-  { id: 1, key: 'subject',    label: 'Apertura',     color: '#C0504D', section: 'subject'   },
+  { id: 1, key: 'subject',    label: 'Apertura',     color: '#C0504D', section: 'subject'    },
   { id: 2, key: 'motivation', label: 'Presentación', color: '#4BACC6', section: 'motivation' },
-  { id: 3, key: 'activity',   label: 'Desarrollo',   color: '#9BBB59', section: 'activity'  },
-  { id: 4, key: 'skill',      label: 'Aplicación',   color: '#8064A2', section: 'skill'     },
-  { id: 5, key: 'closing',    label: 'Cierre',        color: '#F79646', section: 'closing'  },
+  { id: 3, key: 'activity',   label: 'Desarrollo',   color: '#9BBB59', section: 'activity'   },
+  { id: 4, key: 'skill',      label: 'Aplicación',   color: '#8064A2', section: 'skill'      },
+  { id: 5, key: 'assignment', label: 'Tarea',        color: '#4f8ef7', section: 'assignment' },
+  { id: 6, key: 'closing',    label: 'Cierre',       color: '#F79646', section: 'closing'    },
 ]
 
 export default function ClassroomFrame({ teacher, resolved, classroomData, onChangeClass, onSignOut }) {
@@ -23,7 +24,7 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   function handleKey(e) {
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goNext() }
     if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev() }
-    if (e.key >= '1' && e.key <= '5') setActiveMoment(Number(e.key) - 1)
+    if (e.key >= '1' && e.key <= '6') setActiveMoment(Number(e.key) - 1)
   }
 
   return (
