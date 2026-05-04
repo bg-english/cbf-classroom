@@ -3,41 +3,94 @@ import { useState, useRef } from 'react'
 /**
  * ToolsPanel — embedded browser + quick-access links.
  *
- * Allows the teacher to browse YouTube, presentations, websites, etc.
- * without leaving the classroom interface. Sites that block iframes
- * (Gmail, some Google apps) open in a new window instead.
+ * Strategy for iframe restrictions:
+ *  - YouTube URLs → convert to embed format (works in iframe)
+ *  - Google Slides/Docs/Sheets → convert to embed format
+ *  - Sites that allow iframes → load directly
+ *  - Everything else → open in popup window (most sites block iframes)
+ *
+ * The teacher can always force "open in new window" with the ↗ button.
  */
 
 const QUICK_LINKS = [
-  { label: 'YouTube',        url: 'https://www.youtube.com',           icon: '▶',  color: '#d4605c' },
-  { label: 'Google Drive',   url: 'https://drive.google.com',          icon: '📁', color: '#5a91e6' },
-  { label: 'Google Slides',  url: 'https://slides.google.com',         icon: '📊', color: '#d4924a' },
-  { label: 'Virtual Campus', url: 'https://bostonschoolsvirtualcampus.com/', icon: '🏫', color: '#3ea8b8' },
-  { label: 'Cambridge',      url: 'https://www.cambridge.org',         icon: '📘', color: '#5da84a' },
-  { label: 'Canva',          url: 'https://www.canva.com',             icon: '🎨', color: '#8768b8' },
+  { label: 'YouTube',        url: 'https://www.youtube.com',                  icon: '▶',  color: '#d4605c', mode: 'popup' },
+  { label: 'Google Drive',   url: 'https://drive.google.com',                 icon: '📁', color: '#5a91e6', mode: 'popup' },
+  { label: 'Google Slides',  url: 'https://slides.google.com',                icon: '📊', color: '#d4924a', mode: 'popup' },
+  { label: 'Virtual Campus', url: 'https://bostonschoolsvirtualcampus.com/',   icon: '🏫', color: '#3ea8b8', mode: 'popup' },
+  { label: 'Cambridge',      url: 'https://www.cambridge.org',                icon: '📘', color: '#5da84a', mode: 'popup' },
+  { label: 'Canva',          url: 'https://www.canva.com',                    icon: '🎨', color: '#8768b8', mode: 'popup' },
 ]
 
-// Sites known to block iframes — open in new window
-const IFRAME_BLOCKED = [
-  'mail.google.com',
-  'accounts.google.com',
-  'outlook.live.com',
-  'outlook.office.com',
-]
-
-function isIframeBlocked(url) {
+/**
+ * Try to convert a URL to an embeddable format.
+ * Returns { embedUrl, canEmbed } — if canEmbed is false, open in popup.
+ */
+function resolveEmbed(url) {
   try {
-    const hostname = new URL(url).hostname
-    return IFRAME_BLOCKED.some(h => hostname.includes(h))
+    const u = new URL(url)
+
+    // YouTube watch → embed
+    const ytWatch = u.hostname.match(/(?:www\.)?youtube\.com/) && u.searchParams.get('v')
+    if (ytWatch) {
+      return { embedUrl: `https://www.youtube.com/embed/${ytWatch}?autoplay=1`, canEmbed: true }
+    }
+
+    // YouTube short URL
+    const ytShort = u.hostname === 'youtu.be' && u.pathname.slice(1)
+    if (ytShort) {
+      return { embedUrl: `https://www.youtube.com/embed/${ytShort}?autoplay=1`, canEmbed: true }
+    }
+
+    // YouTube embed (already embed format)
+    if (u.hostname.match(/(?:www\.)?youtube\.com/) && u.pathname.startsWith('/embed/')) {
+      return { embedUrl: url, canEmbed: true }
+    }
+
+    // Google Slides → embed
+    if (u.hostname === 'docs.google.com' && u.pathname.includes('/presentation/')) {
+      const embedUrl = url.replace(/\/edit.*$/, '/embed?start=false&loop=false&delayms=3000')
+      return { embedUrl, canEmbed: true }
+    }
+
+    // Google Docs → embed
+    if (u.hostname === 'docs.google.com' && u.pathname.includes('/document/')) {
+      const embedUrl = url.replace(/\/edit.*$/, '/preview')
+      return { embedUrl, canEmbed: true }
+    }
+
+    // Google Sheets → embed
+    if (u.hostname === 'docs.google.com' && u.pathname.includes('/spreadsheets/')) {
+      const embedUrl = url.replace(/\/edit.*$/, '/preview')
+      return { embedUrl, canEmbed: true }
+    }
+
+    // Google Forms → embed (already works)
+    if (u.hostname === 'docs.google.com' && u.pathname.includes('/forms/')) {
+      return { embedUrl: url, canEmbed: true }
+    }
+
+    // Canva presentations/designs (published links work)
+    if (u.hostname.includes('canva.com') && u.pathname.includes('/design/')) {
+      return { embedUrl: url + '?embed', canEmbed: true }
+    }
+
+    // Vimeo → embed
+    const vimeoMatch = u.hostname === 'vimeo.com' && u.pathname.match(/^\/(\d+)/)
+    if (vimeoMatch) {
+      return { embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}`, canEmbed: true }
+    }
+
+    // Everything else → popup (most sites block iframes)
+    return { embedUrl: url, canEmbed: false }
   } catch {
-    return false
+    return { embedUrl: url, canEmbed: false }
   }
 }
 
 export default function ToolsPanel({ onClose }) {
-  const [url, setUrl] = useState('')
   const [activeUrl, setActiveUrl] = useState(null)
   const [inputValue, setInputValue] = useState('')
+  const [iframeError, setIframeError] = useState(false)
   const iframeRef = useRef(null)
 
   function navigate(targetUrl) {
@@ -46,14 +99,24 @@ export default function ToolsPanel({ onClose }) {
       finalUrl = 'https://' + finalUrl
     }
 
-    if (isIframeBlocked(finalUrl)) {
-      window.open(finalUrl, '_blank', 'noopener')
-      return
-    }
+    const { embedUrl, canEmbed } = resolveEmbed(finalUrl)
 
-    setActiveUrl(finalUrl)
-    setUrl(finalUrl)
-    setInputValue(finalUrl)
+    if (canEmbed) {
+      setActiveUrl(embedUrl)
+      setInputValue(finalUrl)
+      setIframeError(false)
+    } else {
+      // Open in popup window — stays accessible, teacher can alt-tab back
+      openPopup(finalUrl)
+    }
+  }
+
+  function openPopup(url) {
+    const w = Math.round(window.screen.width * 0.9)
+    const h = Math.round(window.screen.height * 0.85)
+    const left = Math.round((window.screen.width - w) / 2)
+    const top = Math.round((window.screen.height - h) / 2)
+    window.open(url, 'classroom-tools', `width=${w},height=${h},left=${left},top=${top},noopener`)
   }
 
   function handleSubmit(e) {
@@ -63,13 +126,21 @@ export default function ToolsPanel({ onClose }) {
   }
 
   function handleQuickLink(link) {
-    navigate(link.url)
+    if (link.mode === 'popup') {
+      openPopup(link.url)
+    } else {
+      navigate(link.url)
+    }
   }
 
   function openInNewWindow() {
-    if (activeUrl) {
-      window.open(activeUrl, '_blank', 'noopener')
-    }
+    if (activeUrl) openPopup(activeUrl)
+  }
+
+  function goHome() {
+    setActiveUrl(null)
+    setInputValue('')
+    setIframeError(false)
   }
 
   return (
@@ -80,11 +151,17 @@ export default function ToolsPanel({ onClose }) {
           ← Clase
         </button>
 
+        {activeUrl && (
+          <button className="tp-home-btn" onClick={goHome} title="Inicio herramientas">
+            ⌂
+          </button>
+        )}
+
         <form className="tp-url-form" onSubmit={handleSubmit}>
           <input
             className="tp-url-input"
             type="text"
-            placeholder="Escribe una URL o busca..."
+            placeholder="Pega un enlace de YouTube, Google Slides, o cualquier URL..."
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
           />
@@ -99,17 +176,24 @@ export default function ToolsPanel({ onClose }) {
       </div>
 
       {/* Content area */}
-      {activeUrl ? (
+      {activeUrl && !iframeError ? (
         <div className="tp-iframe-wrap">
           <iframe
             ref={iframeRef}
             src={activeUrl}
             className="tp-iframe"
-            title="Navegador"
+            title="Contenido"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
+            onError={() => setIframeError(true)}
           />
+        </div>
+      ) : activeUrl && iframeError ? (
+        <div className="tp-error">
+          <p>Este sitio no permite ser embebido.</p>
+          <button className="tp-error-btn" onClick={openInNewWindow}>
+            Abrir en ventana nueva ↗
+          </button>
         </div>
       ) : (
         <div className="tp-home">
@@ -131,8 +215,8 @@ export default function ToolsPanel({ onClose }) {
           </div>
 
           <div className="tp-home-hint">
-            <p>También puedes escribir cualquier URL en la barra superior.</p>
-            <p className="tp-home-note">Algunos sitios (Gmail, Outlook) se abrirán en una ventana nueva.</p>
+            <p>Pega un enlace de YouTube o Google Slides para verlo aquí dentro.</p>
+            <p className="tp-home-note">Los demás sitios se abren en una ventana aparte para garantizar compatibilidad.</p>
           </div>
         </div>
       )}

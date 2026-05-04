@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import TopBar from './TopBar'
 import MomentCanvas from './MomentCanvas'
 import BoardStrip from './BoardStrip'
@@ -29,20 +29,57 @@ const MOMENTS = [
 export default function ClassroomFrame({ teacher, resolved, classroomData, onChangeClass, onSignOut }) {
   const [activeMoment, setActiveMoment] = useState(0)
   const [toolsOpen, setToolsOpen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   const { assignment, plan, todayKey, dayContent, combinedGrade } = resolved
   const moment = MOMENTS[activeMoment]
   const sectionContent = dayContent?.sections?.[moment.section] || null
 
+  // ── Fullscreen API ──
+  const requestFullscreen = useCallback(() => {
+    const el = document.documentElement
+    const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen
+    if (rfs) rfs.call(el).catch(() => {})
+  }, [])
+
+  const exitFullscreen = useCallback(() => {
+    const efs = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen
+    if (efs && document.fullscreenElement) efs.call(document).catch(() => {})
+  }, [])
+
+  function toggleFullscreen() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      exitFullscreen()
+    } else {
+      requestFullscreen()
+    }
+  }
+
+  // Auto-request fullscreen on mount (requires prior user gesture — works after login click)
+  useEffect(() => {
+    requestFullscreen()
+
+    function onFsChange() {
+      setIsFullscreen(!!(document.fullscreenElement || document.webkitFullscreenElement))
+    }
+    document.addEventListener('fullscreenchange', onFsChange)
+    document.addEventListener('webkitfullscreenchange', onFsChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', onFsChange)
+      document.removeEventListener('webkitfullscreenchange', onFsChange)
+    }
+  }, [requestFullscreen])
+
   function goNext() { setActiveMoment(m => Math.min(m + 1, MOMENTS.length - 1)) }
   function goPrev() { setActiveMoment(m => Math.max(m - 1, 0)) }
 
   function handleKey(e) {
-    if (toolsOpen) return // don't intercept keys when browsing
+    if (toolsOpen) return
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goNext() }
     if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev() }
     if (e.key >= '1' && e.key <= '6') setActiveMoment(Number(e.key) - 1)
     if (e.key === 'Escape' && toolsOpen) setToolsOpen(false)
+    if (e.key === 'F11') { e.preventDefault(); toggleFullscreen() }
   }
 
   // Board strip props — shared between BoardStrip instances
@@ -73,6 +110,8 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
         onSignOut={onSignOut}
         onOpenTools={() => setToolsOpen(true)}
         toolsOpen={toolsOpen}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={toggleFullscreen}
       />
 
       {showBoardStrip && <BoardStrip {...boardProps} />}

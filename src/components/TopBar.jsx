@@ -7,7 +7,8 @@ import { useState, useEffect } from 'react'
 export default function TopBar({
   teacher, assignment, combinedGrade, plan, todayKey,
   moments, activeMoment, onSelectMoment,
-  onChangeClass, onSignOut, onOpenTools, toolsOpen
+  onChangeClass, onSignOut, onOpenTools, toolsOpen,
+  isFullscreen, onToggleFullscreen
 }) {
   const [time, setTime] = useState(new Date())
   const [elapsed, setElapsed] = useState(0) // seconds since session start
@@ -93,6 +94,9 @@ export default function TopBar({
             <div className="cc-topbar-menu">
               <button onClick={() => { setMenuOpen(false); onOpenTools() }}>
                 🌐 Herramientas
+              </button>
+              <button onClick={() => { setMenuOpen(false); onToggleFullscreen() }}>
+                {isFullscreen ? '⊡ Salir de pantalla completa' : '⊞ Pantalla completa'}
               </button>
               <button onClick={() => { setMenuOpen(false); onChangeClass() }}>
                 🔄 Cambiar clase
