@@ -1,29 +1,44 @@
 /* =========================================================
    CBF Classroom — Global Styles
-   Dark theme based on eta_classroom_design.html palette
+
+   COLOR RATIONALE (eye-care + student engagement):
+   ─ Backgrounds: warm charcoal (neutral undertone, not cold navy)
+     reduces blue-light fatigue on large screens (100" touch).
+   ─ Text: warm off-white (#eef0f4) instead of cool blue-white
+     lowers contrast harshness while keeping WCAG AA readability.
+   ─ Accent: warm sky-blue (#5a91e6) — trustworthy, calming,
+     encourages focus without overstimulation.
+   ─ Moment colors: medium saturation — vivid enough to be
+     inviting and signal transitions, soft enough to avoid
+     anxiety (red) or drowsiness (pure dark).
+   ─ Borders: warm-tinted translucency for subtle depth.
    ========================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
 :root {
-  --bg-900: #0a0e1a;
-  --bg-800: #111827;
-  --bg-700: #1a2235;
-  --bg-600: #232d42;
-  --bg-500: #2d3a52;
-  --border: rgba(255,255,255,0.08);
-  --border-light: rgba(255,255,255,0.15);
+  /* Warm charcoal palette — reduced blue component for eye comfort */
+  --bg-900: #121318;
+  --bg-800: #1a1c24;
+  --bg-700: #23252f;
+  --bg-600: #2d303b;
+  --bg-500: #383b48;
+  --border: rgba(255,255,255,0.07);
+  --border-light: rgba(255,255,255,0.13);
 
-  --text-primary: #f0f4ff;
-  --text-secondary: #8b9cc8;
-  --text-muted: #4a5578;
+  /* Warm text — less blue-white glare on large displays */
+  --text-primary: #eef0f4;
+  --text-secondary: #959aaf;
+  --text-muted: #5c6175;
 
-  --accent: #4f8ef7;
-  --accent-hover: #6ba3ff;
+  /* Accent — warm sky-blue, trust & focus */
+  --accent: #5a91e6;
+  --accent-hover: #72a5f0;
 
-  --success: #4CAF50;
-  --warning: #F79646;
-  --danger: #C0504D;
+  /* Semantic — softened for large-screen comfort */
+  --success: #5cb85f;
+  --warning: #e8944a;
+  --danger: #d4605c;
 
   --font-ui: 'Outfit', sans-serif;
   --font-mono: 'Space Mono', monospace;
@@ -34,9 +49,9 @@
    * preferred uses vw so it scales with viewport width automatically
    */
   --font-size-base:  clamp(14px, 1.1vw, 19px);
-  --topbar-h:        clamp(52px, 4.5vh, 76px);
+  --topbar-h:        clamp(58px, 5.5vh, 82px);
   --canvas-padding:  clamp(16px, 3vw,   56px);
-  --touch-min:       clamp(40px, 3.2vw, 56px);
+  --touch-min:       clamp(44px, 3.2vw, 56px);
 
   /* Fluid type scale */
   --text-xs:   clamp(11px, 0.8vw,  14px);
@@ -180,8 +195,8 @@ a { color: var(--accent); text-decoration: none; }
 .cc-login-form button:hover:not(:disabled) { background: var(--accent-hover); }
 .cc-login-form button:disabled { opacity: 0.6; cursor: not-allowed; }
 .cc-login-error {
-  background: rgba(192,80,77,0.15); border: 1px solid rgba(192,80,77,0.4);
-  border-radius: 6px; color: #ff9f9f; padding: 8px 12px; font-size: 0.85rem;
+  background: rgba(212,96,92,0.12); border: 1px solid rgba(212,96,92,0.35);
+  border-radius: 6px; color: #e8918e; padding: 8px 12px; font-size: 0.85rem;
 }
 .cc-login-hint { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 16px; }
 
@@ -229,31 +244,30 @@ a { color: var(--accent); text-decoration: none; }
    CLASSROOM FRAME
    ========================================================= */
 .cc-frame {
-  /* Use dvh (dynamic viewport height) for Android Chrome address bar */
-  height: 100dvh;
-  height: 100vh; /* fallback for older Android */
+  height: 100vh;
+  height: 100dvh; /* override for browsers that support dvh (Android Chrome) */
   display: flex; flex-direction: column;
   background: var(--bg-900);
-  overflow: hidden; /* prevent any child from causing scroll */
-  max-width: 100vw; /* no horizontal overflow */
+  overflow: hidden;
+  max-width: 100vw;
 }
 
 /* =========================================================
    TOP BAR
    ========================================================= */
 .cc-topbar {
-  height: var(--topbar-h); min-height: var(--topbar-h);
-  display: flex; align-items: center; gap: 16px;
-  padding: 0 24px; background: var(--bg-800);
+  min-height: var(--topbar-h);
+  display: flex; align-items: center; gap: clamp(10px, 1.2vw, 20px);
+  padding: 8px clamp(12px, 1.5vw, 24px); background: var(--bg-800);
   border-bottom: 1px solid var(--border); z-index: 100;
-  touch-action: none; /* prevent accidental scroll in topbar */
+  touch-action: none; flex-shrink: 0;
 }
-.cc-topbar-left { display: flex; align-items: center; gap: 14px; flex-shrink: 0; min-width: 0; }
+.cc-topbar-left { display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-width: 0; }
 .cc-topbar-brand {
   font-family: var(--font-mono); font-size: var(--text-md); font-weight: 700;
   color: var(--accent); letter-spacing: 0.15em; flex-shrink: 0;
 }
-.cc-topbar-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cc-topbar-info { display: flex; align-items: baseline; gap: 8px; min-width: 0; flex-wrap: wrap; }
 .cc-topbar-grade { font-weight: 700; font-size: var(--text-base); white-space: nowrap; }
 .cc-topbar-subject { color: var(--text-secondary); font-size: var(--text-sm); white-space: nowrap; }
 .cc-topbar-date { color: var(--text-muted); font-size: var(--text-xs); white-space: nowrap; }
@@ -394,7 +408,7 @@ a { color: var(--accent); text-decoration: none; }
 .ap-board {
   background: var(--bg-700);
   border: 1px solid var(--border);
-  border-left: 4px solid #C0504D;
+  border-left: 4px solid #d4605c;
   border-radius: 12px;
   overflow: hidden;
 }
@@ -403,10 +417,10 @@ a { color: var(--accent); text-decoration: none; }
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: rgba(192,80,77,0.15);
+  background: rgba(212,96,92,0.12);
   font-size: 0.8rem;
   font-weight: 600;
-  color: #ff9f9f;
+  color: #e8918e;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -437,7 +451,7 @@ a { color: var(--accent); text-decoration: none; }
   font-weight: 500;
 }
 .ap-board-indicator {
-  color: #a8d8a8;
+  color: #8dc87a;
   font-style: italic;
   font-size: 0.9rem;
   line-height: 1.5;
@@ -451,9 +465,9 @@ a { color: var(--accent); text-decoration: none; }
   border: 1px solid var(--border);
   overflow: hidden;
 }
-.ap-verse-year { border-left: 4px solid #4f8ef7; }
-.ap-verse-month { border-left: 4px solid #9BBB59; }
-.ap-verse-indicator { border-left: 4px solid #8064A2; }
+.ap-verse-year { border-left: 4px solid #5a91e6; }
+.ap-verse-month { border-left: 4px solid #5da84a; }
+.ap-verse-indicator { border-left: 4px solid #8768b8; }
 
 .ap-verse-badge {
   padding: 7px 14px;
@@ -462,9 +476,9 @@ a { color: var(--accent); text-decoration: none; }
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
-.ap-verse-year .ap-verse-badge { background: rgba(79,142,247,0.12); color: #7fb3ff; }
-.ap-verse-month .ap-verse-badge { background: rgba(155,187,89,0.12); color: #b8d98d; }
-.ap-verse-indicator .ap-verse-badge { background: rgba(128,100,162,0.12); color: #b49cd6; }
+.ap-verse-year .ap-verse-badge { background: rgba(90,145,230,0.12); color: #89b6f0; }
+.ap-verse-month .ap-verse-badge { background: rgba(93,168,74,0.12); color: #8dc87a; }
+.ap-verse-indicator .ap-verse-badge { background: rgba(135,104,184,0.12); color: #ab93d0; }
 
 .ap-verse-text {
   margin: 0;
@@ -495,7 +509,7 @@ a { color: var(--accent); text-decoration: none; }
   border-top: 1px solid var(--border);
   line-height: 1.5;
 }
-.ap-verse-reflection span { color: #b49cd6; font-weight: 600; }
+.ap-verse-reflection span { color: #ab93d0; font-weight: 600; }
 
 .ap-empty-verses {
   display: flex;
@@ -539,8 +553,8 @@ a { color: var(--accent); text-decoration: none; }
   align-items: center;
   gap: 10px;
   padding: 8px var(--canvas-padding);
-  background: rgba(128,100,162,0.08);
-  border-bottom: 1px solid rgba(128,100,162,0.2);
+  background: rgba(135,104,184,0.08);
+  border-bottom: 1px solid rgba(135,104,184,0.18);
   flex-shrink: 0;
 }
 .cc-bible-banner-icon { font-size: var(--text-sm); opacity: 0.7; }
@@ -563,8 +577,8 @@ a { color: var(--accent); text-decoration: none; }
 /* =========================================================
    GUIDE VERSE — Apertura Devocional
    ========================================================= */
-.ap-verse-guide { border-left: 4px solid #F79646; }
-.ap-verse-guide .ap-verse-badge { background: rgba(247,150,70,0.12); color: #f7b97a; }
+.ap-verse-guide { border-left: 4px solid #d4924a; }
+.ap-verse-guide .ap-verse-badge { background: rgba(212,146,74,0.12); color: #e0b07a; }
 
 /* =========================================================
    SECTION CONTENT — Moments 2–6

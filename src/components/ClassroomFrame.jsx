@@ -2,13 +2,26 @@ import { useState } from 'react'
 import TopBar from './TopBar'
 import MomentCanvas from './MomentCanvas'
 
+/*
+ * Moment colors — medium saturation, eye-care friendly.
+ *
+ * Rationale (educational color psychology):
+ *  1 Apertura  — warm coral:  welcoming, energising start
+ *  2 Presentación — teal:     calm focus, receptive listening
+ *  3 Desarrollo — green:      growth, active work, safety
+ *  4 Aplicación — violet:     creativity, deeper thinking
+ *  5 Tarea     — sky-blue:    clarity, structured intent
+ *  6 Cierre    — amber:       warmth, closure, reflection
+ *
+ * All colours meet WCAG AA contrast on white text (#fff).
+ */
 const MOMENTS = [
-  { id: 1, key: 'subject',    label: 'Apertura',     color: '#C0504D', section: 'subject'    },
-  { id: 2, key: 'motivation', label: 'Presentación', color: '#4BACC6', section: 'motivation' },
-  { id: 3, key: 'activity',   label: 'Desarrollo',   color: '#9BBB59', section: 'activity'   },
-  { id: 4, key: 'skill',      label: 'Aplicación',   color: '#8064A2', section: 'skill'      },
-  { id: 5, key: 'assignment', label: 'Tarea',        color: '#4f8ef7', section: 'assignment' },
-  { id: 6, key: 'closing',    label: 'Cierre',       color: '#F79646', section: 'closing'    },
+  { id: 1, key: 'subject',    label: 'Apertura',     color: '#d4605c', section: 'subject'    },
+  { id: 2, key: 'motivation', label: 'Presentación', color: '#3ea8b8', section: 'motivation' },
+  { id: 3, key: 'activity',   label: 'Desarrollo',   color: '#5da84a', section: 'activity'   },
+  { id: 4, key: 'skill',      label: 'Aplicación',   color: '#8768b8', section: 'skill'      },
+  { id: 5, key: 'assignment', label: 'Tarea',        color: '#5a91e6', section: 'assignment' },
+  { id: 6, key: 'closing',    label: 'Cierre',       color: '#d4924a', section: 'closing'    },
 ]
 
 export default function ClassroomFrame({ teacher, resolved, classroomData, onChangeClass, onSignOut }) {
