@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react'
 
 /**
  * TopBar — always-visible header.
- * Contains: logo · class info · 5 moment pills · timer · menu
+ * Contains: logo · class info · 6 moment pills · tools button · timer · menu
  */
 export default function TopBar({
   teacher, assignment, combinedGrade, plan, todayKey,
   moments, activeMoment, onSelectMoment,
-  onChangeClass, onSignOut
+  onChangeClass, onSignOut, onOpenTools, toolsOpen
 }) {
   const [time, setTime] = useState(new Date())
   const [elapsed, setElapsed] = useState(0) // seconds since session start
@@ -55,19 +55,27 @@ export default function TopBar({
         {moments.map((m, i) => (
           <button
             key={m.id}
-            className={`cc-moment-pill${activeMoment === i ? ' active' : ''}${i < activeMoment ? ' done' : ''}`}
+            className={`cc-moment-pill${!toolsOpen && activeMoment === i ? ' active' : ''}${!toolsOpen && i < activeMoment ? ' done' : ''}`}
             style={{ '--moment-color': m.color }}
             onClick={() => onSelectMoment(i)}
             title={m.label}
           >
-            <span className="cc-moment-num">{m.short}</span>
+            <span className="cc-moment-num">{m.id}</span>
             <span className="cc-moment-label">{m.label}</span>
           </button>
         ))}
       </nav>
 
-      {/* Right: clock, timer, menu */}
+      {/* Right: tools, clock, timer, menu */}
       <div className="cc-topbar-right">
+        <button
+          className={`cc-tools-btn ${toolsOpen ? 'cc-tools-active' : ''}`}
+          onClick={onOpenTools}
+          title="Herramientas"
+        >
+          🌐
+        </button>
+
         <div className="cc-topbar-clock">
           <span className="cc-clock">{formatClock(time)}</span>
           <span className="cc-elapsed">{formatTime(elapsed)}</span>
@@ -83,6 +91,9 @@ export default function TopBar({
           </button>
           {menuOpen && (
             <div className="cc-topbar-menu">
+              <button onClick={() => { setMenuOpen(false); onOpenTools() }}>
+                🌐 Herramientas
+              </button>
               <button onClick={() => { setMenuOpen(false); onChangeClass() }}>
                 🔄 Cambiar clase
               </button>

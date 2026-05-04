@@ -12,9 +12,6 @@ export default function MomentCanvas({
   todayKey, combinedGrade, subject,
   onNext, onPrev, isFirst, isLast
 }) {
-  const principio = plan?.content?.objetivo?.principio || null
-  const biblicalPrinciple = classroomData?.biblicalPrinciple || principio
-
   return (
     <main className="cc-canvas" style={{ '--moment-color': moment.color }}>
 
@@ -28,14 +25,6 @@ export default function MomentCanvas({
           <span className="cc-canvas-time">⏱ {sectionContent.time}</span>
         )}
       </div>
-
-      {/* Biblical principle banner — visible in moments 2-6 */}
-      {moment.id >= 2 && biblicalPrinciple && (
-        <BiblicalBanner
-          principio={biblicalPrinciple}
-          verseRef={classroomData?.indicatorVerseRef}
-        />
-      )}
 
       {/* Content area */}
       <div className="cc-canvas-content">
@@ -88,19 +77,6 @@ export default function MomentCanvas({
         </button>
       </div>
     </main>
-  )
-}
-
-/**
- * BiblicalBanner — subtle reminder of the biblical principle for moments 2-6
- */
-function BiblicalBanner({ principio, verseRef }) {
-  return (
-    <div className="cc-bible-banner">
-      <span className="cc-bible-banner-icon">✝</span>
-      <span className="cc-bible-banner-text">{principio}</span>
-      {verseRef && <span className="cc-bible-banner-ref">{verseRef}</span>}
-    </div>
   )
 }
 

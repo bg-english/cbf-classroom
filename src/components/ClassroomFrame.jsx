@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import TopBar from './TopBar'
 import MomentCanvas from './MomentCanvas'
+import BoardStrip from './BoardStrip'
+import ToolsPanel from './ToolsPanel'
 
 /*
  * Moment colors — medium saturation, eye-care friendly.
@@ -26,6 +28,7 @@ const MOMENTS = [
 
 export default function ClassroomFrame({ teacher, resolved, classroomData, onChangeClass, onSignOut }) {
   const [activeMoment, setActiveMoment] = useState(0)
+  const [toolsOpen, setToolsOpen] = useState(false)
 
   const { assignment, plan, todayKey, dayContent, combinedGrade } = resolved
   const moment = MOMENTS[activeMoment]
@@ -35,10 +38,25 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   function goPrev() { setActiveMoment(m => Math.max(m - 1, 0)) }
 
   function handleKey(e) {
+    if (toolsOpen) return // don't intercept keys when browsing
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goNext() }
     if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev() }
     if (e.key >= '1' && e.key <= '6') setActiveMoment(Number(e.key) - 1)
+    if (e.key === 'Escape' && toolsOpen) setToolsOpen(false)
   }
+
+  // Board strip props — shared between BoardStrip instances
+  const boardProps = {
+    todayKey,
+    dayContent,
+    plan,
+    classroomData,
+    subject: assignment?.subject,
+    combinedGrade,
+  }
+
+  // Show BoardStrip in moments 2-6 and tools mode (never in Apertura — it has the full board)
+  const showBoardStrip = activeMoment > 0 || toolsOpen
 
   return (
     <div className="cc-frame" tabIndex={0} onKeyDown={handleKey} style={{ outline: 'none' }}>
@@ -50,25 +68,33 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
         todayKey={todayKey}
         moments={MOMENTS}
         activeMoment={activeMoment}
-        onSelectMoment={setActiveMoment}
+        onSelectMoment={(i) => { setToolsOpen(false); setActiveMoment(i) }}
         onChangeClass={onChangeClass}
         onSignOut={onSignOut}
+        onOpenTools={() => setToolsOpen(true)}
+        toolsOpen={toolsOpen}
       />
 
-      <MomentCanvas
-        moment={moment}
-        sectionContent={sectionContent}
-        plan={plan}
-        dayContent={dayContent}
-        classroomData={classroomData}
-        todayKey={todayKey}
-        combinedGrade={combinedGrade}
-        subject={assignment?.subject}
-        onNext={goNext}
-        onPrev={goPrev}
-        isFirst={activeMoment === 0}
-        isLast={activeMoment === MOMENTS.length - 1}
-      />
+      {showBoardStrip && <BoardStrip {...boardProps} />}
+
+      {toolsOpen ? (
+        <ToolsPanel onClose={() => setToolsOpen(false)} />
+      ) : (
+        <MomentCanvas
+          moment={moment}
+          sectionContent={sectionContent}
+          plan={plan}
+          dayContent={dayContent}
+          classroomData={classroomData}
+          todayKey={todayKey}
+          combinedGrade={combinedGrade}
+          subject={assignment?.subject}
+          onNext={goNext}
+          onPrev={goPrev}
+          isFirst={activeMoment === 0}
+          isLast={activeMoment === MOMENTS.length - 1}
+        />
+      )}
     </div>
   )
 }
