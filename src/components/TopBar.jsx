@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 export default function TopBar({
   teacher, assignment, combinedGrade, plan, todayKey,
   moments, activeMoment, onSelectMoment,
-  onChangeClass, onSignOut, onOpenTools, toolsOpen,
+  onChangeClass, onSignOut, onOpenTools, onOpenWhiteboard, toolsOpen,
   isFullscreen, onToggleFullscreen
 }) {
   const [time, setTime] = useState(new Date())
@@ -67,8 +67,18 @@ export default function TopBar({
         ))}
       </nav>
 
-      {/* Right: tools, clock, timer, menu */}
+      {/* Right: whiteboard, tools, clock, timer, menu */}
       <div className="cc-topbar-right">
+        <button
+          className="cc-whiteboard-btn"
+          onClick={onOpenWhiteboard}
+          title="Pizarra"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+          </svg>
+        </button>
+
         <button
           className={`cc-tools-btn ${toolsOpen ? 'cc-tools-active' : ''}`}
           onClick={onOpenTools}
@@ -92,6 +102,9 @@ export default function TopBar({
           </button>
           {menuOpen && (
             <div className="cc-topbar-menu">
+              <button onClick={() => { setMenuOpen(false); onOpenWhiteboard() }}>
+                ✏ Pizarra
+              </button>
               <button onClick={() => { setMenuOpen(false); onOpenTools() }}>
                 🌐 Herramientas
               </button>

@@ -82,6 +82,7 @@ export default function MomentCanvas({
 
 /**
  * SectionContent — renders HTML content + smartBlocks + media for moments 2–6
+ * Enhanced with card-based layout for a more interactive, artifact-like feel.
  */
 function SectionContent({ moment, sectionContent, plan, dayContent }) {
   const hasContent = sectionContent?.content && sectionContent.content !== '<p></p>'
@@ -95,37 +96,37 @@ function SectionContent({ moment, sectionContent, plan, dayContent }) {
     return (
       <div className="sc-container">
 
-        {/* Content + images with layout */}
-        {hasContent && imageLayout && hasImages ? (
-          <div className={`sc-layout sc-layout-${imageLayout}`}>
-            <div
-              className="cc-rich-content"
-              dangerouslySetInnerHTML={{ __html: sectionContent.content }}
-            />
-            <div className="sc-layout-images">
-              {sectionContent.images.map((img, i) => (
-                <ImageWithLink key={i} img={img} />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <>
-            {hasContent && (
+        {/* Main content card */}
+        {hasContent && (
+          <div className="sc-content-card" style={{ '--card-accent': moment.color }}>
+            {imageLayout && hasImages ? (
+              <div className={`sc-layout sc-layout-${imageLayout}`}>
+                <div
+                  className="cc-rich-content"
+                  dangerouslySetInnerHTML={{ __html: sectionContent.content }}
+                />
+                <div className="sc-layout-images">
+                  {sectionContent.images.map((img, i) => (
+                    <ImageWithLink key={i} img={img} />
+                  ))}
+                </div>
+              </div>
+            ) : (
               <div
                 className="cc-rich-content"
                 dangerouslySetInnerHTML={{ __html: sectionContent.content }}
               />
             )}
+          </div>
+        )}
 
-            {/* Images (no layout specified) */}
-            {hasImages && !imageLayout && (
-              <div className={`sc-images sc-images-${sectionContent.images.length}`}>
-                {sectionContent.images.map((img, i) => (
-                  <ImageWithLink key={i} img={img} />
-                ))}
-              </div>
-            )}
-          </>
+        {/* Images (no layout specified) */}
+        {hasImages && !imageLayout && (
+          <div className={`sc-images sc-images-${sectionContent.images.length}`}>
+            {sectionContent.images.map((img, i) => (
+              <ImageWithLink key={i} img={img} />
+            ))}
+          </div>
         )}
 
         {/* Videos */}
@@ -149,9 +150,12 @@ function SectionContent({ moment, sectionContent, plan, dayContent }) {
           </div>
         )}
 
-        {/* SmartBlocks */}
+        {/* SmartBlocks — interactive activities */}
         {hasSmartBlocks && (
           <div className="sc-smartblocks">
+            <div className="sc-smartblocks-header">
+              <span className="sc-smartblocks-badge" style={{ background: moment.color }}>Actividad Interactiva</span>
+            </div>
             {sectionContent.smartBlocks.map((block, i) => (
               <SmartBlock key={block.id || i} block={block} />
             ))}

@@ -3,6 +3,7 @@ import TopBar from './TopBar'
 import MomentCanvas from './MomentCanvas'
 import BoardStrip from './BoardStrip'
 import ToolsPanel from './ToolsPanel'
+import Whiteboard from './Whiteboard'
 
 /*
  * Moment colors — medium saturation, eye-care friendly.
@@ -17,18 +18,24 @@ import ToolsPanel from './ToolsPanel'
  *
  * All colours meet WCAG AA contrast on white text (#fff).
  */
+/*
+ * Moment colors — optimized for light theme + classroom visibility.
+ * High saturation for contrast on white, but not neon.
+ * Must be readable as white text on colored badge backgrounds.
+ */
 const MOMENTS = [
-  { id: 1, key: 'subject',    label: 'Apertura',     color: '#d4605c', section: 'subject'    },
-  { id: 2, key: 'motivation', label: 'Presentación', color: '#3ea8b8', section: 'motivation' },
-  { id: 3, key: 'activity',   label: 'Desarrollo',   color: '#5da84a', section: 'activity'   },
-  { id: 4, key: 'skill',      label: 'Aplicación',   color: '#8768b8', section: 'skill'      },
-  { id: 5, key: 'assignment', label: 'Tarea',        color: '#5a91e6', section: 'assignment' },
-  { id: 6, key: 'closing',    label: 'Cierre',       color: '#d4924a', section: 'closing'    },
+  { id: 1, key: 'subject',    label: 'Apertura',     color: '#dc2626', section: 'subject'    },
+  { id: 2, key: 'motivation', label: 'Presentación', color: '#0891b2', section: 'motivation' },
+  { id: 3, key: 'activity',   label: 'Desarrollo',   color: '#16a34a', section: 'activity'   },
+  { id: 4, key: 'skill',      label: 'Aplicación',   color: '#7c3aed', section: 'skill'      },
+  { id: 5, key: 'assignment', label: 'Tarea',        color: '#2563eb', section: 'assignment' },
+  { id: 6, key: 'closing',    label: 'Cierre',       color: '#d97706', section: 'closing'    },
 ]
 
 export default function ClassroomFrame({ teacher, resolved, classroomData, onChangeClass, onSignOut }) {
   const [activeMoment, setActiveMoment] = useState(0)
   const [toolsOpen, setToolsOpen] = useState(false)
+  const [whiteboardOpen, setWhiteboardOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   const { assignment, plan, todayKey, dayContent, combinedGrade } = resolved
@@ -92,8 +99,8 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     combinedGrade,
   }
 
-  // Show BoardStrip in moments 2-6 and tools mode (never in Apertura — it has the full board)
-  const showBoardStrip = activeMoment > 0 || toolsOpen
+  // ABC: el tablero NUNCA se borra durante la clase — siempre visible
+  const showBoardStrip = true
 
   return (
     <div className="cc-frame" tabIndex={0} onKeyDown={handleKey} style={{ outline: 'none' }}>
@@ -109,6 +116,7 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
         onChangeClass={onChangeClass}
         onSignOut={onSignOut}
         onOpenTools={() => setToolsOpen(true)}
+        onOpenWhiteboard={() => setWhiteboardOpen(true)}
         toolsOpen={toolsOpen}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
@@ -134,6 +142,8 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
           isLast={activeMoment === MOMENTS.length - 1}
         />
       )}
+
+      {whiteboardOpen && <Whiteboard onClose={() => setWhiteboardOpen(false)} />}
     </div>
   )
 }
