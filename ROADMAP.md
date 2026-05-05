@@ -1,7 +1,9 @@
 # ClassroomOS — Roadmap
 
 > Sistema de aula digital para Colegio Boston Flexible.  
-> Pantalla interactiva para docentes que muestra planeaciones, juegos didácticos y herramientas en tiempo real.
+> Pantalla interactiva que transforma el salón de clases en un entorno de aprendizaje inmersivo, gamificado y medible.  
+> **De cara al alumno:** experiencia de aprendizaje al nivel de las mejores plataformas del mundo.  
+> **De cara al padre:** visibilidad total del progreso, participación y desempeño de su hijo.
 
 ---
 
@@ -49,7 +51,8 @@
 ## Pendiente
 
 ### Fase 1 — Fundamentos en tiempo real
-> Objetivo: El docente ve quién está conectado a la clase en tiempo real.
+> Objetivo: El docente ve quién está conectado a la clase en tiempo real.  
+> Impacto padre: "Mi hijo está conectado y participando activamente."
 
 - [ ] Integrar Supabase Realtime Presence en la sesión de clase
 - [ ] Canal de clase (broadcast) — el docente emite, los estudiantes reciben
@@ -60,57 +63,481 @@
   - Badge de "estudiante remoto" vs "presencial"
 - [ ] Registro de eventos de presencia en tabla `presence_events`
 - [ ] Alertas cuando un estudiante remoto se desconecta
-- [ ] Endpoint o página web para que el estudiante "entre" a la clase desde su dispositivo
+- [ ] Portal web del estudiante para "entrar" a la clase desde su dispositivo
+- [ ] Notificación automática al padre si el estudiante remoto se desconecta más de X minutos
 
-### Fase 2 — Juegos proyectados (pantalla del docente)
-> Objetivo: Convertir SmartBlocks existentes en juegos interactivos para toda la clase.
+---
 
-- [ ] **Quiz Engine** que consume datos de SmartBlocks automáticamente
-  - Transforma GRAMMAR/fill-blank → preguntas de completar
-  - Transforma GRAMMAR/choose → preguntas de opción múltiple
-  - Transforma VOCAB/matching → juego de asociación
-  - Transforma READING/comprehension → quiz de comprensión
-- [ ] **Modos de juego proyectados:**
-  - Kahoot-style: pregunta con timer, 4 opciones con colores, animaciones
-  - Spelling Bee: se muestra definición, clase dice la palabra
-  - Grammar Race: completar oraciones contra reloj
-  - Vocabulary Match: conectar palabras con definiciones
-- [ ] Animaciones de respuesta correcta/incorrecta
-- [ ] Tabla de posiciones (equipos o individual)
-- [ ] Sonidos de countdown, victoria, error
-- [ ] El docente controla el ritmo (siguiente pregunta manual o automático)
+### Fase 2 — Motor de Juegos (Game Engine)
+> Objetivo: Un engine reutilizable que alimenta todos los juegos con datos de las planeaciones.  
+> Los juegos se generan automáticamente desde los SmartBlocks — el docente no tiene trabajo extra.
 
-### Fase 3 — Juegos multiplayer (celulares de estudiantes)
-> Objetivo: Cada estudiante juega desde su celular, resultados en vivo en la pantalla.
+- [ ] **Game Engine Core:**
+  - Parser de SmartBlocks → formato universal de preguntas
+  - Sistema de puntaje configurable (por velocidad, precisión, streak)
+  - Timer visual con animaciones
+  - Sistema de sonidos (countdown, correct, wrong, victory, level-up)
+  - Transiciones y animaciones entre preguntas
+  - Persistencia de resultados en `student_activity_grades`
+  - Analytics: tiempo de respuesta, porcentaje de acierto, progreso
 
-- [ ] Código de sala para unirse (6 dígitos, QR code)
-- [ ] Interfaz móvil para el estudiante (responsive, solo opciones grandes)
-- [ ] Sync de respuestas en tiempo real (Supabase Realtime)
-- [ ] Leaderboard en vivo en pantalla del docente
-- [ ] Power-ups y streak bonuses
-- [ ] Resultados guardados en `student_activity_grades`
-- [ ] Historial de partidas por clase
-- [ ] Modo equipo vs individual
+- [ ] **Modos de juego base:**
+  - Solo (pantalla proyectada, clase responde en grupo)
+  - Multiplayer individual (cada uno en su celular)
+  - Equipos (2-6 equipos compitiendo)
+  - Class vs Teacher (toda la clase contra el docente)
+  - Duelos 1v1 (bracket de eliminación)
 
-### Fase 4 — Split screen + Sistema de calificaciones
-> Objetivo: El docente gestiona notas desde su celular y se reflejan en la pantalla.
+---
+
+### Fase 3 — Juegos de Vocabulario
+
+#### 3.1 Word Blast (Tetris de palabras)
+> Caen palabras en inglés, el estudiante toca la traducción/definición correcta antes de que llegue al fondo.
+- [ ] Palabras caen con gravedad variable (dificultad progresiva)
+- [ ] Vidas: 3 errores y pierdes
+- [ ] Combo multiplier por respuestas consecutivas
+- [ ] Fuente de datos: `VOCAB/matching` del SmartBlock
+- [ ] Modo: proyectado + individual
+
+#### 3.2 Picture Match (Imagen-Palabra)
+> Se muestra una imagen, 4 opciones de palabra. Asociación visual.
+- [ ] Usa imágenes de las guías (ya almacenadas en Supabase Storage)
+- [ ] Round-based: 10 imágenes por ronda
+- [ ] Bonus por velocidad
+- [ ] Modo: proyectado + individual
+
+#### 3.3 Crossword Builder (Crucigrama automático)
+> Crucigrama generado desde el vocabulario semanal.
+- [ ] Algoritmo de colocación automática de palabras
+- [ ] Pistas = definiciones del vocabulario
+- [ ] Timer opcional
+- [ ] Modo: proyectado (clase resuelve en grupo) + individual
+
+#### 3.4 Word Chain (Cadena de palabras)
+> Un estudiante dice/escribe una palabra, el siguiente debe empezar con la última letra.
+- [ ] Validación contra diccionario
+- [ ] Categorías: solo verbos, solo adjetivos, temática libre
+- [ ] Timer por turno
+- [ ] Visualización de cadena en pantalla
+- [ ] Modo: proyectado con turnos
+
+#### 3.5 Memory Match (Parejas)
+> Tablero de cartas boca abajo. Emparejar palabra inglés ↔ definición/traducción.
+- [ ] Grid de 4x4 o 6x6 según dificultad
+- [ ] Animación flip de carta
+- [ ] Contador de intentos
+- [ ] Modo: proyectado + equipos + individual
+
+#### 3.6 Word Scramble (Anagrama)
+> Letras desordenadas, el estudiante forma la palabra correcta.
+- [ ] Pista: definición o imagen
+- [ ] Drag & drop de letras (touch friendly)
+- [ ] Dificultad progresiva (palabras más largas)
+- [ ] Modo: proyectado + individual
+
+#### 3.7 Hangman Reimagined (Ahorcado moderno)
+> Versión moderna sin la horca — construyes algo positivo (torre, cohete, jardín).
+- [ ] Letras en teclado visual grande
+- [ ] Cada acierto agrega un elemento al dibujo
+- [ ] Pista contextual después de 3 fallos
+- [ ] Modo: proyectado (clase participa)
+
+#### 3.8 Vocabulary Bingo
+> Bingo con definiciones como pistas y palabras en las casillas.
+- [ ] Generación aleatoria de cartones por estudiante
+- [ ] El docente "canta" definiciones, los estudiantes marcan la palabra
+- [ ] Detección automática de bingo
+- [ ] Modo: multiplayer (cada uno su cartón en celular)
+
+#### 3.9 Word Association Web
+> Se muestra una palabra central, los estudiantes agregan palabras asociadas.
+- [ ] Mapa mental visual en tiempo real
+- [ ] Votación de mejores asociaciones
+- [ ] Desarrolla redes semánticas
+- [ ] Modo: multiplayer colaborativo
+
+#### 3.10 Spelling Bee
+> Se muestra definición (o se reproduce audio), el estudiante deletrea.
+- [ ] Rondas eliminatorias
+- [ ] "Can you use it in a sentence?" — el sistema da una oración ejemplo
+- [ ] Pronunciación con Web Speech API
+- [ ] Modo: proyectado con turnos
+
+---
+
+### Fase 4 — Juegos de Gramática
+
+#### 4.1 Sentence Builder (Constructor de oraciones)
+> Palabras desordenadas, arrastrar al orden correcto.
+- [ ] Drag & drop con snap (touch-optimized)
+- [ ] Múltiples oraciones por ronda
+- [ ] Puntaje por velocidad + precisión
+- [ ] Fuente: oraciones de `GRAMMAR/fill-blank`
+- [ ] Modo: proyectado + individual
+
+#### 4.2 Error Hunt (Caza errores)
+> Oración con un error gramatical. Toca la palabra incorrecta.
+- [ ] Timer: más rápido = más puntos
+- [ ] 3 niveles: obvio, sutil, trampa (oración correcta)
+- [ ] Explicación del error después de responder
+- [ ] Modo: proyectado + individual + duelo
+
+#### 4.3 Tense Timeline (Línea de tiempo verbal)
+> Oración mostrada → el estudiante la ubica en past/present/future.
+- [ ] Línea de tiempo visual horizontal con zonas de color
+- [ ] Drag de la oración a la zona correcta
+- [ ] Sub-tiempos: simple, continuous, perfect
+- [ ] Modo: proyectado + individual
+
+#### 4.4 Grammar Auction (Subasta gramatical)
+> Equipos tienen "dinero virtual". Subastan por oraciones que creen correctas.
+- [ ] Pool de oraciones (algunas correctas, otras no)
+- [ ] Fase de subasta: equipos pujan
+- [ ] Revelación: si es correcta, ganan el doble. Si no, pierden todo
+- [ ] Estrategia + conocimiento gramatical
+- [ ] Modo: equipos
+
+#### 4.5 Conjugation Race (Carrera de conjugación)
+> Se da un verbo + tiempo + persona. Responder la conjugación correcta.
+- [ ] Velocidad progresiva
+- [ ] Verbos irregulares como "power rounds"
+- [ ] Visual: carros/cohetes avanzando
+- [ ] Modo: multiplayer competitivo
+
+#### 4.6 Transformation Challenge (Transformaciones)
+> Oración dada → transformar a otro tiempo/voz/forma.
+- [ ] "Make it negative", "Change to past", "Make it a question"
+- [ ] Evaluar múltiples respuestas válidas
+- [ ] Modo: individual + duelo
+
+#### 4.7 Fill the Gap Race (Completar contra reloj)
+> El clásico fill-in-the-blank pero gamificado con velocidad.
+- [ ] Oraciones de los SmartBlocks existentes
+- [ ] Opciones múltiples o escritura libre
+- [ ] Streak bonus (5 correctas seguidas = x2)
+- [ ] Modo: multiplayer
+
+#### 4.8 Grammar Tetris
+> Bloques caen con fragmentos de oración. Rotarlos y colocarlos en orden.
+- [ ] Sujeto → verbo → complemento → puntuación
+- [ ] Líneas completas = puntos
+- [ ] Velocidad aumenta por nivel
+- [ ] Modo: individual
+
+#### 4.9 Clause Connector (Conector de cláusulas)
+> Dos cláusulas sueltas + lista de conectores. Elegir el correcto.
+- [ ] Because, although, however, therefore, etc.
+- [ ] Contexto visual para cada oración
+- [ ] Modo: proyectado + individual
+
+---
+
+### Fase 5 — Juegos de Listening & Speaking
+
+#### 5.1 Dictation Race (Dictado competitivo)
+> El sistema reproduce audio. Los estudiantes escriben lo que escuchan.
+- [ ] Web Speech API (TTS) o audios pregrabados del docente
+- [ ] Puntaje por precisión ortográfica (Levenshtein distance)
+- [ ] Velocidad de reproducción configurable
+- [ ] Replay limitado (máx 2 veces)
+- [ ] Modo: multiplayer
+
+#### 5.2 Pronunciation Challenge (Reto de pronunciación)
+> Se muestra una palabra/frase. El estudiante la dice al micrófono.
+- [ ] Web Speech Recognition API para evaluación
+- [ ] Porcentaje de match
+- [ ] Feedback visual: qué fonemas fallaron
+- [ ] Tongue twisters como bonus rounds
+- [ ] Modo: individual + proyectado (uno a la vez)
+
+#### 5.3 Whisper Challenge
+> Un estudiante ve la frase (en la pantalla solo para él), la dice. Los demás adivinan.
+- [ ] Frase mostrada solo en el celular del "hablante"
+- [ ] Los demás escriben lo que entendieron
+- [ ] Puntos por cercanía a la frase original
+- [ ] Modo: multiplayer con turnos
+
+#### 5.4 Song Lyrics Fill (Completar letras de canciones)
+> Se reproduce una canción. Algunas palabras están en blanco.
+- [ ] Integración con audio (Spotify embed o archivos propios)
+- [ ] Palabras clave removidas según gramática objetivo
+- [ ] Puntaje por completar antes de que la canción avance
+- [ ] Modo: proyectado (clase en grupo) + individual
+
+#### 5.5 Audio Story Builder
+> El sistema dice el inicio de una historia. Los estudiantes continúan.
+- [ ] TTS lee la historia base
+- [ ] Cada estudiante agrega una oración (escrita o hablada)
+- [ ] La historia se construye colaborativamente
+- [ ] Votación de mejor continuación
+- [ ] Modo: multiplayer colaborativo
+
+#### 5.6 Sound Effects Story
+> Se reproducen efectos de sonido. Los estudiantes narran qué pasa usando target grammar.
+- [ ] Biblioteca de sonidos (lluvia, puerta, pasos, etc.)
+- [ ] Deben usar el tiempo verbal objetivo
+- [ ] Desarrolla creatividad + gramática
+- [ ] Modo: proyectado con turnos
+
+---
+
+### Fase 6 — Juegos de Reading & Comprehension
+
+#### 6.1 Speed Reading Challenge
+> Texto aparece palabra por palabra a velocidad controlada. Preguntas al final.
+- [ ] WPM configurable (100, 150, 200, 250)
+- [ ] Comprensión medida con preguntas
+- [ ] Tracking de progreso (WPM promedio del estudiante)
+- [ ] Fuente: `READING/comprehension` passages
+- [ ] Modo: individual
+
+#### 6.2 Story Puzzle (Rompecabezas narrativo)
+> Párrafo dividido en oraciones desordenadas. Reconstruir la historia.
+- [ ] Drag & drop de oraciones
+- [ ] Pistas de cohesión (first, then, finally, however)
+- [ ] Timer opcional
+- [ ] Modo: proyectado + individual
+
+#### 6.3 Context Clues Detective
+> Texto con palabra desconocida/inventada. Deducir significado por contexto.
+- [ ] 4 opciones de significado
+- [ ] Highlight de pistas contextuales después de responder
+- [ ] Desarrolla inferencia — habilidad #1 en reading
+- [ ] Modo: proyectado + individual
+
+#### 6.4 Headline News (Titulares)
+> Se muestra un artículo. El estudiante debe escribir el mejor titular.
+- [ ] Votación de la clase por mejor titular
+- [ ] Enseña main idea + summarization
+- [ ] Modo: multiplayer
+
+#### 6.5 True/False/Not Given
+> Estilo IELTS/Cambridge. Afirmaciones sobre un texto.
+- [ ] True (el texto lo dice)
+- [ ] False (el texto dice lo contrario)
+- [ ] Not Given (el texto no menciona esto)
+- [ ] Crucial para exámenes internacionales
+- [ ] Modo: proyectado + individual
+
+#### 6.6 Quote Attribution
+> Se muestra una cita de un personaje del texto. ¿Quién lo dijo?
+- [ ] Desarrolla atención al detalle
+- [ ] Opciones: personajes de la lectura
+- [ ] Modo: proyectado
+
+#### 6.7 Sequencing Race
+> Eventos del texto mostrados en desorden. Ordenar cronológicamente.
+- [ ] Drag & drop
+- [ ] Timer competitivo
+- [ ] Modo: individual + equipos
+
+---
+
+### Fase 7 — Juegos de Writing & Creativity
+
+#### 7.1 Mad Libs (Historias locas)
+> El sistema pide partes del discurso. Genera una historia absurda.
+- [ ] "Give me a verb in past tense", "Give me an adjective"
+- [ ] Historia generada se proyecta — la clase se ríe
+- [ ] Asociación emocional positiva con gramática
+- [ ] Modo: proyectado (clase contribuye)
+
+#### 7.2 Emoji Translator
+> Frase en emojis → escribir en inglés. O frase en inglés → representar con emojis.
+- [ ] Desarrolla comprensión semántica
+- [ ] Votación de mejor traducción
+- [ ] Modo: multiplayer
+
+#### 7.3 Two Truths One Lie
+> Cada estudiante escribe 3 oraciones sobre sí mismo. La clase vota cuál es mentira.
+- [ ] Práctica de escritura en target grammar
+- [ ] Speaking cuando explican la verdad
+- [ ] Social + divertido
+- [ ] Modo: multiplayer con turnos
+
+#### 7.4 Story Relay (Historia en cadena)
+> Cada estudiante agrega una oración a la historia.
+- [ ] Timer por turno (30 segundos)
+- [ ] Debe usar la estructura gramatical objetivo
+- [ ] La historia se muestra en la pantalla en tiempo real
+- [ ] Modo: multiplayer secuencial
+
+#### 7.5 Caption Contest
+> Se muestra una imagen (graciosa/interesante). Escribir el mejor caption.
+- [ ] Votación anónima de la clase
+- [ ] Debe usar vocabulario/gramática de la unidad
+- [ ] Top 3 se muestran en pantalla con animación
+- [ ] Modo: multiplayer
+
+#### 7.6 Describe & Draw
+> Un estudiante describe algo en inglés. Los demás dibujan.
+- [ ] El "descriptor" ve la imagen en su celular
+- [ ] Los demás dibujan en el Whiteboard o su celular
+- [ ] Votación de dibujo más cercano
+- [ ] Desarrolla giving instructions + spatial vocabulary
+- [ ] Modo: multiplayer
+
+#### 7.7 Formal vs Informal Transformer
+> Se da una oración informal. Reescribir en registro formal (o viceversa).
+- [ ] "sup bro wanna hang?" → "Would you like to spend some time together?"
+- [ ] Puntaje por formalidad correcta
+- [ ] Útil para letter writing (como el plan existente de 8.° Blue)
+- [ ] Modo: individual + equipos
+
+---
+
+### Fase 8 — Juegos Competitivos de Alto Engagement
+
+#### 8.1 Vocabulary Tower (Torre de bloques)
+> Cada respuesta correcta = un bloque. Construye la torre más alta.
+- [ ] Animación de bloques apilándose
+- [ ] Error = bloque cae (pierde altura)
+- [ ] Visual: torres de todos los jugadores en pantalla
+- [ ] El primero en 15 bloques gana
+- [ ] Modo: multiplayer
+
+#### 8.2 Grammar Duel (Duelo 1v1)
+> Dos estudiantes, misma pregunta, el más rápido gana.
+- [ ] Bracket de eliminación
+- [ ] Semi-finales y final proyectados
+- [ ] La clase observa y aprende
+- [ ] Espectadores pueden "apostar" puntos
+- [ ] Modo: multiplayer (bracket)
+
+#### 8.3 Class vs Teacher
+> La clase acumula puntos contra el docente.
+- [ ] El docente "juega" (responde preguntas difíciles)
+- [ ] Si la clase gana: recompensa (no homework, free time, etc.)
+- [ ] Genera energía colectiva y colaboración
+- [ ] Modo: proyectado
+
+#### 8.4 Territory Conquest (Conquista de territorio)
+> Mapa dividido en territorios. Respuestas correctas = conquistas.
+- [ ] Mapa visual con colores por equipo
+- [ ] Estrategia: atacar territorios vecinos
+- [ ] Preguntas más difíciles = territorios más valiosos
+- [ ] Modo: equipos
+
+#### 8.5 Survivor (Eliminación progresiva)
+> Todos empiezan. Error = eliminado. Último en pie gana.
+- [ ] Preguntas cada 15 segundos
+- [ ] Dificultad aumenta conforme quedan menos
+- [ ] "Revive" token: 1 por juego
+- [ ] Tensión narrativa: "Quedan 5 estudiantes..."
+- [ ] Modo: multiplayer
+
+#### 8.6 Treasure Hunt (Búsqueda del tesoro)
+> Pistas en inglés que llevan a "tesoros" virtuales.
+- [ ] Cada pista resuelta desbloquea la siguiente
+- [ ] Pistas usan gramática/vocabulario objetivo
+- [ ] Mapa visual con progreso
+- [ ] Modo: equipos
+
+#### 8.7 Who Wants to Be a Millionaire (¿Quién quiere ser millonario?)
+> Formato clásico adaptado.
+- [ ] 15 preguntas de dificultad progresiva
+- [ ] Comodines: 50/50, ask the class, skip
+- [ ] Música y tensión dramática
+- [ ] Modo: proyectado (un estudiante juega, clase es audiencia)
+
+#### 8.8 Jeopardy Board
+> Tablero de categorías y valores.
+- [ ] Categorías: Grammar, Vocab, Listening, Culture, Wild Card
+- [ ] Valores: 100, 200, 300, 400, 500
+- [ ] Daily Double
+- [ ] Modo: equipos
+
+---
+
+### Fase 9 — Juegos de Cultura & Conversación
+
+#### 9.1 Culture Quiz
+> Preguntas sobre cultura de países anglófonos.
+- [ ] UK, USA, Australia, Canada, etc.
+- [ ] Tradiciones, comida, expresiones, geografía
+- [ ] Desarrolla competencia intercultural
+- [ ] Modo: proyectado + multiplayer
+
+#### 9.2 Idiom Illustrator
+> Se muestra un idiom ("it's raining cats and dogs"). Dibujar el significado literal vs real.
+- [ ] Hilario para los estudiantes
+- [ ] Memoria visual del significado real
+- [ ] Base de datos de 200+ idioms comunes
+- [ ] Modo: proyectado
+
+#### 9.3 Role Play Scenario
+> Situación comunicativa. Los estudiantes improvisan diálogos.
+- [ ] "You're at a restaurant. Order food for your family."
+- [ ] Evaluación con rubric automática (speaking rubric existente)
+- [ ] Timer por rol
+- [ ] Modo: presencial (pantalla muestra escenario + rubric)
+
+#### 9.4 Debate Timer
+> Tema controversial (age-appropriate). Equipos a favor y en contra.
+- [ ] Timer visual por equipo
+- [ ] Scoring por argumentos (clase vota)
+- [ ] Vocabulario de opinión: "I believe", "On the other hand", "Furthermore"
+- [ ] Modo: proyectado + presencial
+
+#### 9.5 Would You Rather (¿Preferirías?)
+> Dos opciones. Los estudiantes eligen y justifican en inglés.
+- [ ] "Would you rather live in the past or the future?"
+- [ ] Pie chart en tiempo real de las respuestas
+- [ ] Speaking: justificar usando target grammar
+- [ ] Modo: multiplayer + proyectado
+
+---
+
+### Fase 10 — Portal del Padre & Reportes
+
+> Objetivo: El padre ve en tiempo real el progreso de su hijo.
+
+- [ ] **Dashboard del padre (web/móvil):**
+  - Participación en clase (presencia, respuestas, engagement)
+  - Resultados de juegos (puntajes, rankings, progreso)
+  - Calificaciones actualizadas en tiempo real
+  - Asistencia (presencial + remota)
+  - Notificaciones push (desconexión, nota baja, logro desbloqueado)
+- [ ] **Reportes automáticos:**
+  - Reporte semanal enviado por email/WhatsApp
+  - Gráficas de progreso por habilidad (grammar, vocab, reading, etc.)
+  - Comparativa con el promedio de la clase (anónima)
+  - Áreas de oportunidad identificadas por AI
+- [ ] **Gamificación visible al padre:**
+  - Badges/logros del estudiante
+  - Streak de participación
+  - Nivel y XP acumulado
+  - Ranking (opcional, configurable por el colegio)
+
+---
+
+### Fase 11 — Split Screen + Sistema de Calificaciones
+
+> Objetivo: El docente gestiona todo desde su celular. La pantalla refleja al instante.
 
 - [ ] **Layout dividido** (split screen):
   - Panel principal (contenido/juego)
   - Panel lateral (lista de estudiantes + calificaciones)
   - Redimensionable con drag
+  - Presets: 70/30, 50/50, solo juego, solo notas
 - [ ] **Sistema de calificaciones nativo:**
   - Grid de estudiantes × actividades (como hoja de cálculo)
   - Entrada de notas desde celular del docente
   - Sincronización instantánea con la pantalla (Realtime)
-  - Categorías: participación, quiz, tarea, examen
-  - Cálculo automático de promedios
+  - Categorías: participación, quiz, tarea, examen, juegos
+  - Cálculo automático de promedios ponderados
+  - Auto-grade desde resultados de juegos
 - [ ] Edición de nombres, observaciones desde el celular
 - [ ] Indicador visual de cambios recientes (highlight animado)
-- [ ] Exportación a formato compatible con el sistema de notas del colegio
+- [ ] Exportación a formato del sistema de notas del colegio
+- [ ] Historial de cambios (quién cambió qué, cuándo)
 
-### Fase 5 — Video remoto (LiveKit)
-> Objetivo: El estudiante remoto aparece en la pantalla del salón, sin Google Meet/Classroom.
+---
+
+### Fase 12 — Video Remoto (LiveKit)
+
+> Objetivo: El estudiante remoto es un ciudadano de primera clase en el salón.
 
 - [ ] Integración con LiveKit SDK (ya hay tablas `livekit_rooms`, `livekit_participants`)
 - [ ] Componente `RemoteStudentVideo`:
@@ -122,6 +549,31 @@
 - [ ] Indicador de calidad de conexión
 - [ ] Fallback: si el video falla, se mantiene audio + avatar
 - [ ] Grabación opcional de la sesión
+- [ ] El estudiante remoto puede participar en los juegos igual que los presenciales
+- [ ] Hand-raise virtual: el remoto "levanta la mano"
+
+---
+
+### Fase 13 — AI Integration
+
+> Objetivo: Inteligencia artificial como copiloto del docente y tutor del estudiante.
+
+- [ ] **Generación automática de contenido de juegos:**
+  - AI genera preguntas adicionales basadas en el tema del día
+  - Adapta dificultad según desempeño del grupo
+  - Crea distractores inteligentes (errores comunes)
+- [ ] **Feedback personalizado al estudiante:**
+  - Después de cada juego, AI explica los errores
+  - Sugiere práctica adicional en áreas débiles
+  - Tono encouraging, alineado con valores cristianos
+- [ ] **Asistente del docente:**
+  - Sugiere qué juego usar según el contenido del día
+  - Identifica estudiantes que necesitan atención
+  - Resume el desempeño de la clase al final de la sesión
+- [ ] **Evaluación de writing/speaking:**
+  - AI evalúa respuestas abiertas (essays, speaking)
+  - Rubric-based scoring automático
+  - El docente aprueba/ajusta antes de publicar
 
 ---
 
@@ -136,27 +588,49 @@
 | `school_monthly_principles` | Versículo/principio bíblico mensual |
 | `news_projects` | Proyectos NEWS con principio bíblico por indicador |
 | `classroom_sessions` | Sesiones activas de clase |
-| `presence_events` | Registro de presencia (para Fase 1) |
-| `livekit_rooms` / `livekit_participants` | Infraestructura de video (para Fase 5) |
-| `student_activity_grades` | Calificaciones por actividad (para Fase 4) |
+| `presence_events` | Registro de presencia |
+| `livekit_rooms` / `livekit_participants` | Infraestructura de video |
+| `student_activity_grades` | Calificaciones por actividad |
 | `school_students` | Roster de estudiantes |
 | `student_attendance` | Asistencia |
+
+### Tablas nuevas necesarias
+
+| Tabla | Propósito |
+|-------|-----------|
+| `game_sessions` | Sesión de juego activa (tipo, config, estado) |
+| `game_participants` | Quién está jugando + puntaje en vivo |
+| `game_results` | Resultados finales por estudiante por juego |
+| `game_questions` | Pool de preguntas generadas (cache) |
+| `student_achievements` | Badges, XP, streaks, niveles |
+| `parent_accounts` | Cuentas de padres vinculadas a estudiantes |
+| `parent_notifications` | Cola de notificaciones para padres |
+| `grade_entries` | Registro granular de calificaciones |
+| `grade_history` | Historial de cambios en notas |
 
 ---
 
 ## Stack tecnológico
 
 - **Frontend:** React 19 + Vite 8
-- **Backend/DB:** Supabase (PostgreSQL + Auth + Realtime + Storage)
+- **Backend/DB:** Supabase (PostgreSQL + Auth + Realtime + Storage + Edge Functions)
 - **Video:** LiveKit (WebRTC SFU)
-- **Deploy:** GitHub Pages (estático) — considerar Vercel/Cloudflare para SSR si se necesita
+- **AI:** Claude API (generación de contenido, evaluación, feedback)
+- **Audio:** Web Speech API (TTS + Speech Recognition)
+- **Deploy:** GitHub Pages (estático) → migrar a Vercel/Cloudflare cuando se necesite SSR
 - **Pantalla:** Optimizado para 55"-100" touch displays (Android/Windows)
+- **Móvil:** PWA responsive (estudiantes + padres + docente)
 
 ---
 
-## Notas de diseño
+## Principios de diseño
 
 - **ABC del encuentro académico:** El tablero (Fecha, Tema, Objetivo, Principio Bíblico) NUNCA se borra durante la clase.
 - **Eye-care:** Tema claro para salones iluminados. Sin fondos oscuros ni letras de colores neón.
 - **Touch-first:** Botones mínimo 44px, sin hover-only interactions, soporte completo para gestos.
 - **Offline-resilient:** Los juegos y contenido deben funcionar con conexión intermitente (cola de eventos).
+- **Zero extra work for teachers:** Los juegos se alimentan automáticamente de las planeaciones existentes.
+- **Data-driven:** Todo genera datos medibles. Cada interacción del estudiante se registra para analytics.
+- **Parent-visible:** El padre puede ver el progreso sin necesidad de pedir reportes.
+- **Inclusive:** El estudiante remoto participa exactamente igual que el presencial.
+- **Joyful:** El aprendizaje debe ser divertido. Si el estudiante no quiere jugar, el juego falló.
