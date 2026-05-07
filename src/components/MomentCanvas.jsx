@@ -1,5 +1,6 @@
 import AperturaDevocional from './AperturaDevocional'
 import SmartBlock from './SmartBlock'
+import { analyzeContent } from '../utils/contentAnalyzer'
 
 /**
  * MomentCanvas — renders the appropriate content for each of the 6 moments.
@@ -81,113 +82,205 @@ export default function MomentCanvas({
 }
 
 /**
- * SectionContent — renders HTML content + smartBlocks + media for moments 2–6
- * Enhanced with card-based layout for a more interactive, artifact-like feel.
+ * SectionContent — renders HTML content + smartBlocks + media for moments 2–6.
+ * Uses contentAnalyzer to auto-detect the best layout for the HTML content.
  */
 function SectionContent({ moment, sectionContent, plan, dayContent }) {
-  const hasContent = sectionContent?.content && sectionContent.content !== '<p></p>'
+  const hasContent     = sectionContent?.content && sectionContent.content !== '<p></p>'
   const hasSmartBlocks = sectionContent?.smartBlocks?.length > 0
-  const hasVideos = sectionContent?.videos?.length > 0
-  const hasAudios = sectionContent?.audios?.length > 0
-  const hasImages = sectionContent?.images?.length > 0
-  const imageLayout = sectionContent?.image_layout || null
+  const hasVideos      = sectionContent?.videos?.length > 0
+  const hasAudios      = sectionContent?.audios?.length > 0
+  const hasImages      = sectionContent?.images?.length > 0
+  const imageLayout    = sectionContent?.image_layout || null
 
-  if (hasContent || hasSmartBlocks || hasVideos || hasAudios) {
+  if (!hasContent && !hasSmartBlocks && !hasVideos && !hasAudios) {
     return (
-      <div className="sc-container">
-
-        {/* Main content card */}
-        {hasContent && (
-          <div className="sc-content-card" style={{ '--card-accent': moment.color }}>
-            {imageLayout && hasImages ? (
-              <div className={`sc-layout sc-layout-${imageLayout}`}>
-                <div
-                  className="cc-rich-content"
-                  dangerouslySetInnerHTML={{ __html: sectionContent.content }}
-                />
-                <div className="sc-layout-images">
-                  {sectionContent.images.map((img, i) => (
-                    <ImageWithLink key={i} img={img} />
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div
-                className="cc-rich-content"
-                dangerouslySetInnerHTML={{ __html: sectionContent.content }}
-              />
-            )}
-          </div>
+      <div className="cc-canvas-empty">
+        <div className="cc-canvas-empty-icon" style={{ color: moment.color }}>
+          {MOMENT_ICONS[moment.id] || '📋'}
+        </div>
+        <p>No hay contenido para <strong>{moment.label}</strong>.</p>
+        {!plan && (
+          <p className="cc-canvas-empty-hint">Crea una guía en CBF Planner para que aparezca aquí.</p>
         )}
-
-        {/* Images (no layout specified) */}
-        {hasImages && !imageLayout && (
-          <div className={`sc-images sc-images-${sectionContent.images.length}`}>
-            {sectionContent.images.map((img, i) => (
-              <ImageWithLink key={i} img={img} />
-            ))}
-          </div>
+        {plan && !dayContent && (
+          <p className="cc-canvas-empty-hint">La guía <em>{plan.date_range}</em> no tiene contenido para hoy.</p>
         )}
-
-        {/* Videos */}
-        {hasVideos && (
-          <div className="sc-media-section">
-            {sectionContent.videos.map((vid, i) => (
-              <MediaVideo key={i} video={vid} />
-            ))}
-          </div>
-        )}
-
-        {/* Audios */}
-        {hasAudios && (
-          <div className="sc-media-section">
-            {sectionContent.audios.map((aud, i) => (
-              <div key={i} className="sc-audio-item">
-                {aud.name && <span className="sc-audio-label">{aud.name}</span>}
-                <audio controls src={aud.url} className="sc-audio-player" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* SmartBlocks — interactive activities */}
-        {hasSmartBlocks && (
-          <div className="sc-smartblocks">
-            <div className="sc-smartblocks-header">
-              <span className="sc-smartblocks-badge" style={{ background: moment.color }}>Actividad Interactiva</span>
-            </div>
-            {sectionContent.smartBlocks.map((block, i) => (
-              <SmartBlock key={block.id || i} block={block} />
-            ))}
-          </div>
+        {plan && dayContent && (
+          <p className="cc-canvas-empty-hint">Esta sección está vacía en la guía. Edítala en CBF Planner.</p>
         )}
       </div>
     )
   }
 
+  const analysis = hasContent ? analyzeContent(sectionContent.content) : { layout: 'empty' }
+
   return (
-    <div className="cc-canvas-empty">
-      <div className="cc-canvas-empty-icon" style={{ color: moment.color }}>
-        {MOMENT_ICONS[moment.id] || '📋'}
-      </div>
-      <p>No hay contenido para <strong>{moment.label}</strong>.</p>
-      {!plan && (
-        <p className="cc-canvas-empty-hint">
-          Crea una guía en CBF Planner para que aparezca aquí.
-        </p>
+    <div className="sc-container">
+
+      {/* ── Contenido principal — layout inteligente ── */}
+      {hasContent && (
+        <ContentLayout
+          analysis={analysis}
+          html={sectionContent.content}
+          moment={moment}
+          images={hasImages ? sectionContent.images : []}
+          imageLayout={imageLayout}
+        />
       )}
-      {plan && !dayContent && (
-        <p className="cc-canvas-empty-hint">
-          La guía <em>{plan.date_range}</em> no tiene contenido para hoy.
-        </p>
+
+      {/* ── Imágenes sin layout (cuando no hay imageLayout configurado) ── */}
+      {hasImages && !imageLayout && analysis.layout !== 'key-points' && (
+        <div className={`sc-images sc-images-${Math.min(sectionContent.images.length, 4)}`}>
+          {sectionContent.images.map((img, i) => (
+            <ImageWithLink key={i} img={img} />
+          ))}
+        </div>
       )}
-      {plan && dayContent && (
-        <p className="cc-canvas-empty-hint">
-          Esta sección está vacía en la guía. Edítala en CBF Planner.
-        </p>
+
+      {/* ── Videos ── */}
+      {hasVideos && (
+        <div className="sc-media-section">
+          {sectionContent.videos.map((vid, i) => (
+            <MediaVideo key={i} video={vid} />
+          ))}
+        </div>
+      )}
+
+      {/* ── Audios ── */}
+      {hasAudios && (
+        <div className="sc-media-section">
+          {sectionContent.audios.map((aud, i) => (
+            <div key={i} className="sc-audio-item">
+              {aud.name && <span className="sc-audio-label">{aud.name}</span>}
+              <audio controls src={aud.url} className="sc-audio-player" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── SmartBlocks ── */}
+      {hasSmartBlocks && (
+        <div className="sc-smartblocks">
+          <div className="sc-smartblocks-header">
+            <span className="sc-smartblocks-badge" style={{ background: moment.color }}>
+              Actividad Interactiva
+            </span>
+          </div>
+          {sectionContent.smartBlocks.map((block, i) => (
+            <SmartBlock key={block.id || i} block={block} />
+          ))}
+        </div>
       )}
     </div>
   )
+}
+
+/**
+ * ContentLayout — selecciona el componente de layout según el análisis.
+ */
+function ContentLayout({ analysis, html, moment, images, imageLayout }) {
+  const accent = moment.color
+
+  // Si hay imageLayout explícito, respetarlo sobre el análisis
+  if (imageLayout && images.length > 0) {
+    return (
+      <div className="sc-content-card" style={{ '--card-accent': accent }}>
+        <div className={`sc-layout sc-layout-${imageLayout}`}>
+          <div className="cc-rich-content" dangerouslySetInnerHTML={{ __html: html }} />
+          <div className="sc-layout-images">
+            {images.map((img, i) => <ImageWithLink key={i} img={img} />)}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  switch (analysis.layout) {
+
+    // ── Slide: párrafo corto centrado ────────────────────────────────────────
+    case 'slide':
+      return (
+        <div className="cl-slide" style={{ '--slide-accent': accent }}>
+          <div
+            className="cl-slide-text"
+            dangerouslySetInnerHTML={{ __html: analysis.text }}
+          />
+          <div className="cl-slide-accent-bar" style={{ background: accent }} />
+        </div>
+      )
+
+    // ── Key-points: items como cards visuales ────────────────────────────────
+    case 'key-points':
+      return (
+        <div className="cl-keypoints" style={{ '--kp-accent': accent }}>
+          {analysis.heading && (
+            <div className="cl-keypoints-heading" style={{ borderLeftColor: accent }}>
+              {analysis.heading}
+            </div>
+          )}
+          {analysis.intro && (
+            <div
+              className="cl-keypoints-intro"
+              dangerouslySetInnerHTML={{ __html: analysis.intro }}
+            />
+          )}
+          <div className={`cl-keypoints-grid cl-kp-${Math.min(analysis.items.length, 4)}`}>
+            {analysis.items.map((item, i) => (
+              <div key={i} className="cl-kp-card" style={{ '--kp-accent': accent }}>
+                <span className="cl-kp-num" style={{ color: accent }}>{i + 1}</span>
+                <span className="cl-kp-text" dangerouslySetInnerHTML={{ __html: item }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+
+    // ── Compact-list: lista larga ────────────────────────────────────────────
+    case 'compact-list':
+      return (
+        <div className="sc-content-card" style={{ '--card-accent': accent }}>
+          {analysis.heading && (
+            <div className="cl-feature-heading" style={{ color: accent }}>
+              {analysis.heading}
+            </div>
+          )}
+          <div className="cc-rich-content" dangerouslySetInnerHTML={{ __html: html }} />
+        </div>
+      )
+
+    // ── Feature: heading prominente + contenido ──────────────────────────────
+    case 'feature':
+      return (
+        <div className="cl-feature" style={{ '--feature-accent': accent }}>
+          <div className="cc-rich-content cl-feature-content" dangerouslySetInnerHTML={{ __html: html }} />
+        </div>
+      )
+
+    // ── Reading: texto largo con tipografía enhanced ─────────────────────────
+    case 'reading':
+      return (
+        <div className="cl-reading" style={{ '--reading-accent': accent }}>
+          <div className="cc-rich-content cl-reading-content" dangerouslySetInnerHTML={{ __html: html }} />
+        </div>
+      )
+
+    // ── Sectioned: múltiples headings ────────────────────────────────────────
+    case 'sectioned':
+      return (
+        <div className="cl-sectioned" style={{ '--section-accent': accent }}>
+          <div className="cc-rich-content cl-sectioned-content" dangerouslySetInnerHTML={{ __html: html }} />
+        </div>
+      )
+
+    // ── Default: card estándar ────────────────────────────────────────────────
+    default:
+      return (
+        <div className="sc-content-card" style={{ '--card-accent': accent }}>
+          <div className="cc-rich-content" dangerouslySetInnerHTML={{ __html: html }} />
+        </div>
+      )
+  }
 }
 
 /**
