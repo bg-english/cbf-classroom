@@ -19,12 +19,12 @@ import Whiteboard from './Whiteboard'
  * Colores: WCAG AA sobre texto blanco (#fff), visibles a 5m+ en pantalla 55"-100".
  */
 const MOMENTS = [
-  { id: 1, key: 'subject',    label: 'Encuentro',    color: '#dc2626', section: 'subject'    },
-  { id: 2, key: 'motivation', label: 'Tema del Día', color: '#0891b2', section: 'motivation' },
-  { id: 3, key: 'activity',   label: 'Motivación',   color: '#16a34a', section: 'activity'   },
-  { id: 4, key: 'skill',      label: 'Desarrollo',   color: '#7c3aed', section: 'skill'      },
-  { id: 5, key: 'closing',    label: 'Cierre',       color: '#d97706', section: 'closing'    },
-  { id: 6, key: 'assignment', label: 'Tarea',        color: '#2563eb', section: 'assignment' },
+  { id: 1, key: 'subject',    label: 'Encuentro',    color: '#dc2626', section: 'subject',    abc: 'Saluda a presenciales y virtuales · Presenta Vocabulary List · Anuncia el Principio Bíblico del mes' },
+  { id: 2, key: 'motivation', label: 'Tema del Día', color: '#0891b2', section: 'motivation', abc: 'Escribe en el tablero: Fecha · Tema · Objetivo · Principio Bíblico · No borrar durante la clase' },
+  { id: 3, key: 'activity',   label: 'Motivación',   color: '#16a34a', section: 'activity',   abc: 'Menciona Reglas WBT · Pre-conocimiento: conecta con la clase anterior · Activa saberes previos' },
+  { id: 4, key: 'skill',      label: 'Desarrollo',   color: '#7c3aed', section: 'skill',      abc: 'Desarrolla la habilidad del día · Modela y practica · Explica el Principio Bíblico (5 min) · Recuerda la ES y la rúbrica' },
+  { id: 5, key: 'closing',    label: 'Cierre',       color: '#d97706', section: 'closing',    abc: 'Verifica asimilación con preguntas · Conecta el aprendizaje con el Principio Bíblico como cierre natural' },
+  { id: 6, key: 'assignment', label: 'Tarea',        color: '#2563eb', section: 'assignment', abc: 'Asigna tarea concreta y alcanzable · Virtual Campus / Flex App · Preparación para la siguiente clase' },
 ]
 
 export default function ClassroomFrame({ teacher, resolved, classroomData, onChangeClass, onSignOut }) {

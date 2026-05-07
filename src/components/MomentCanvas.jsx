@@ -13,6 +13,10 @@ export default function MomentCanvas({
   todayKey, combinedGrade, subject,
   onNext, onPrev, isFirst, isLast
 }) {
+  const biblicalPrinciple = classroomData?.biblicalPrinciple
+    || plan?.content?.objetivo?.principio
+    || null
+
   return (
     <main className="cc-canvas" style={{ '--moment-color': moment.color }}>
 
@@ -24,6 +28,11 @@ export default function MomentCanvas({
         <h2 className="cc-canvas-moment-title">{moment.label}</h2>
         {sectionContent?.time && (
           <span className="cc-canvas-time">⏱ {sectionContent.time}</span>
+        )}
+        {moment.abc && (
+          <div className="cc-abc-hint" style={{ '--abc-color': moment.color }}>
+            {moment.abc}
+          </div>
         )}
       </div>
 
@@ -38,13 +47,33 @@ export default function MomentCanvas({
             combinedGrade={combinedGrade}
             subject={subject}
           />
-        ) : (
-          <SectionContent
+        ) : moment.id === 2 ? (
+          <M2TemaDia
             moment={moment}
-            sectionContent={sectionContent}
             plan={plan}
             dayContent={dayContent}
+            todayKey={todayKey}
+            combinedGrade={combinedGrade}
+            subject={subject}
+            classroomData={classroomData}
+            sectionContent={sectionContent}
           />
+        ) : (
+          <>
+            {moment.id === 3 && <WBTBanner />}
+            <SectionContent
+              moment={moment}
+              sectionContent={sectionContent}
+              plan={plan}
+              dayContent={dayContent}
+            />
+            {moment.id === 4 && biblicalPrinciple && (
+              <BiblicalMidCard principle={biblicalPrinciple} classroomData={classroomData} />
+            )}
+            {moment.id === 5 && biblicalPrinciple && (
+              <BiblicalCloseCard principle={biblicalPrinciple} classroomData={classroomData} />
+            )}
+          </>
         )}
       </div>
 
@@ -337,6 +366,145 @@ function MediaVideo({ video }) {
     <div className="sc-video-item">
       {video.name && <span className="sc-video-label">{video.name}</span>}
       <video controls src={url} className="sc-video-player" />
+    </div>
+  )
+}
+
+/**
+ * M2TemaDia — Momento 2 (Tema del Día)
+ * El tablero ES el contenido principal de este momento (ABC paso 2).
+ * "Escribe en el tablero... no borrar durante la clase."
+ */
+function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject, classroomData, sectionContent }) {
+  const dateLabel = todayKey
+    ? new Date(todayKey + 'T12:00:00').toLocaleDateString('es-CO', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      })
+    : ''
+  const dayUnit = dayContent?.unit || subject || ''
+  const objetivo = plan?.content?.objetivo || {}
+  const indicadores = objetivo.indicadores || []
+  const objectiveText = Array.isArray(indicadores) && indicadores.length > 0
+    ? (typeof indicadores[0] === 'string' ? indicadores[0] : indicadores[0]?.habilidad || indicadores[0]?.texto_en || '')
+    : (objetivo.general || '')
+  const principio = classroomData?.biblicalPrinciple || objetivo.principio || null
+
+  return (
+    <div className="m2-container">
+      <div className="m2-board">
+        <div className="m2-board-header">
+          <span className="m2-board-icon">🖊</span>
+          <span>Tablero de Clase</span>
+          <span className="m2-board-note">No borrar durante la clase</span>
+        </div>
+        <div className="m2-board-grid">
+          <div className="m2-field">
+            <span className="m2-label">Fecha</span>
+            <span className="m2-value">{dateLabel}</span>
+          </div>
+          <div className="m2-field">
+            <span className="m2-label">Grado · Materia</span>
+            <span className="m2-value">{combinedGrade} · {subject}</span>
+          </div>
+          <div className="m2-field m2-full">
+            <span className="m2-label">Tema del Día</span>
+            <span className="m2-value m2-value-large">{dayUnit || 'Sin tema asignado'}</span>
+          </div>
+          <div className="m2-field m2-full">
+            <span className="m2-label">Objetivo / Indicador</span>
+            <span className="m2-value m2-value-indicator">{objectiveText || 'Sin objetivo asignado'}</span>
+          </div>
+          {principio && (
+            <div className="m2-field m2-full m2-field-principle">
+              <span className="m2-label">✝ Principio Bíblico</span>
+              <span className="m2-value">{principio}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Plan content for M2 — complementary, shown below tablero */}
+      {sectionContent?.content && sectionContent.content !== '<p></p>' && (
+        <SectionContent
+          moment={moment}
+          sectionContent={sectionContent}
+          plan={plan}
+          dayContent={dayContent}
+        />
+      )}
+    </div>
+  )
+}
+
+/**
+ * WBTBanner — Momento 3 (Motivación)
+ * ABC paso 4: "Menciona las reglas de la clase (Whole Brain Teaching)"
+ * ABC paso 5: "Pre-conocimiento - Conexión temática"
+ */
+function WBTBanner() {
+  return (
+    <div className="wbt-banner">
+      <div className="wbt-section">
+        <span className="wbt-icon">🧠</span>
+        <div className="wbt-text">
+          <span className="wbt-title">Whole Brain Teaching — Reglas de Clase</span>
+          <div className="wbt-rules">
+            <span>1 · Sigue instrucciones rápido</span>
+            <span>2 · Levanta la mano para hablar</span>
+            <span>3 · Levanta la mano para pararte</span>
+            <span>4 · Toma decisiones inteligentes</span>
+            <span>5 · Sé amable con tus compañeros</span>
+          </div>
+        </div>
+      </div>
+      <div className="wbt-precon">
+        <span className="wbt-precon-icon">🔄</span>
+        <span><strong>Pre-conocimiento:</strong> ¿Qué aprendimos en la clase anterior?</span>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * BiblicalMidCard — Momento 4 (Desarrollo)
+ * ABC: "Explica el principio bíblico del mes por 5 minutos
+ *       y habla nuevamente de él antes de finalizar tu clase"
+ */
+function BiblicalMidCard({ principle, classroomData }) {
+  return (
+    <div className="bib-card bib-card-mid">
+      <div className="bib-card-badge">
+        <span>✝</span> Principio Bíblico del Mes — 5 min
+      </div>
+      <blockquote className="bib-card-text">{principle}</blockquote>
+      {classroomData?.indicatorVerseRef && (
+        <cite className="bib-card-ref">{classroomData.indicatorVerseRef}</cite>
+      )}
+      {classroomData?.biblicalReflection && (
+        <div className="bib-card-reflection">💬 {classroomData.biblicalReflection}</div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * BiblicalCloseCard — Momento 5 (Cierre)
+ * ABC: "Conecta el aprendizaje del día con el principio bíblico como cierre natural"
+ * Cosmovisión: "Presenta el principio bíblico durante el inicio, desarrollo y CIERRE"
+ */
+function BiblicalCloseCard({ principle, classroomData }) {
+  return (
+    <div className="bib-card bib-card-close">
+      <div className="bib-card-badge">
+        <span>✝</span> Cierre Bíblico
+      </div>
+      <p className="bib-card-prompt">
+        Conecta el aprendizaje de hoy con el principio bíblico como cierre natural de la clase.
+      </p>
+      <blockquote className="bib-card-text">{principle}</blockquote>
+      {classroomData?.indicatorVerseRef && (
+        <cite className="bib-card-ref">{classroomData.indicatorVerseRef}</cite>
+      )}
     </div>
   )
 }

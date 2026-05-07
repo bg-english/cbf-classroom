@@ -1674,6 +1674,217 @@ a { color: var(--accent); text-decoration: none; }
 }
 
 /* =========================================================
+   ABC HINT — contextual strip in canvas header
+   ========================================================= */
+.cc-abc-hint {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding: 6px 14px;
+  background: color-mix(in srgb, var(--abc-color) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--abc-color) 20%, transparent);
+  border-radius: 8px;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+/* =========================================================
+   M2 TEMA DEL DÍA — tablero prominente
+   ========================================================= */
+.m2-container {
+  max-width: clamp(620px, 72vw, 1100px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.5vh, 24px);
+}
+.m2-board {
+  background: #fffef8;
+  border: 2px solid #c9942e;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(201, 148, 46, 0.12);
+}
+.m2-board-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: linear-gradient(90deg, #fdf3d5, #fef9ed);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #7c5a0a;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e2c97e;
+}
+.m2-board-icon { font-size: 1.1rem; }
+.m2-board-note {
+  margin-left: auto;
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: #a07820;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.8;
+}
+.m2-board-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: #e8dcc4;
+  padding: 1px;
+}
+.m2-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: clamp(14px, 1.5vh, 20px) clamp(16px, 1.5vw, 24px);
+  background: #fffef8;
+}
+.m2-full { grid-column: 1 / -1; }
+.m2-label {
+  font-size: 0.72rem;
+  color: #8b7355;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+.m2-value {
+  font-size: var(--text-md);
+  color: #1a2332;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.m2-value-large {
+  font-size: clamp(1rem, 2.2vw, 1.5rem);
+  font-weight: 700;
+  color: #0c1e3a;
+}
+.m2-value-indicator {
+  font-size: var(--text-md);
+  color: #1e6f3a;
+  font-style: italic;
+  line-height: 1.6;
+}
+.m2-field-principle { background: #f8fcf5; }
+.m2-field-principle .m2-label { color: #3d6b24; }
+.m2-field-principle .m2-value { color: #2d5218; }
+
+/* =========================================================
+   WBT BANNER — Momento 3 (Motivación)
+   ========================================================= */
+.wbt-banner {
+  max-width: clamp(620px, 72vw, 1000px);
+  margin: 0 auto clamp(14px, 1.5vh, 22px);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  background: rgba(22, 163, 74, 0.04);
+}
+.wbt-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: clamp(12px, 1.2vh, 18px) clamp(14px, 1.5vw, 20px);
+}
+.wbt-icon { font-size: clamp(1.4rem, 2.5vw, 2rem); flex-shrink: 0; margin-top: 2px; }
+.wbt-text { flex: 1; }
+.wbt-title {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: #15803d;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+.wbt-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+.wbt-rules span {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.wbt-precon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px clamp(14px, 1.5vw, 20px);
+  background: rgba(22, 163, 74, 0.06);
+  border-top: 1px solid rgba(22, 163, 74, 0.15);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.wbt-precon-icon { font-size: 1.1rem; }
+.wbt-precon strong { color: #15803d; }
+
+/* =========================================================
+   BIBLICAL CARDS — Momentos 4 y 5
+   ========================================================= */
+.bib-card {
+  max-width: clamp(560px, 68vw, 900px);
+  margin: clamp(14px, 1.5vh, 22px) auto 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+.bib-card-mid {
+  border-left: 4px solid #7c3aed;
+  background: rgba(124, 58, 237, 0.03);
+}
+.bib-card-close {
+  border-left: 4px solid #d97706;
+  background: rgba(217, 119, 6, 0.03);
+}
+.bib-card-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.bib-card-mid .bib-card-badge { background: rgba(124,58,237,0.07); color: #6d28d9; }
+.bib-card-close .bib-card-badge { background: rgba(217,119,6,0.07); color: #b45309; }
+.bib-card-prompt {
+  margin: 0;
+  padding: 8px 16px 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.bib-card-text {
+  margin: 0;
+  padding: 10px 16px 8px;
+  font-size: var(--text-md);
+  font-style: italic;
+  color: var(--text-primary);
+  line-height: 1.7;
+  border: none;
+}
+.bib-card-ref {
+  display: block;
+  padding: 0 16px 10px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-style: normal;
+  font-family: var(--font-mono);
+}
+.bib-card-reflection {
+  padding: 8px 16px 12px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+}
+
+/* =========================================================
    RESPONSIVE
    ========================================================= */
 

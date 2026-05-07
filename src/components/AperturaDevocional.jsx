@@ -33,36 +33,6 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
   return (
     <div className="ap-container">
 
-      {/* ── TABLERO DIGITAL ── */}
-      <div className="ap-board">
-        <div className="ap-board-header">
-          <span className="ap-board-icon">🖊</span>
-          <span>Tablero de Clase</span>
-        </div>
-        <div className="ap-board-grid">
-          <div className="ap-board-item">
-            <span className="ap-board-label">Fecha</span>
-            <span className="ap-board-value">{dateLabel}</span>
-          </div>
-          <div className="ap-board-item">
-            <span className="ap-board-label">Grado · Materia</span>
-            <span className="ap-board-value">{combinedGrade} · {subject}</span>
-          </div>
-          {dayUnit && (
-            <div className="ap-board-item ap-board-full">
-              <span className="ap-board-label">Tema del día</span>
-              <span className="ap-board-value">{dayUnit}</span>
-            </div>
-          )}
-          {firstIndicator && (
-            <div className="ap-board-item ap-board-full">
-              <span className="ap-board-label">Objetivo / Indicador</span>
-              <span className="ap-board-value ap-board-indicator">{firstIndicator}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* ── VERSÍCULOS ── */}
       <div className="ap-verses">
 
@@ -143,11 +113,11 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
         )}
       </div>
 
-      {/* ── CONTENIDO DE LA SECCIÓN (si existe) ── */}
+      {/* ── VOCABULARY LIST (contenido del encuentro) ── */}
       {dayContent?.sections?.subject?.content &&
        dayContent.sections.subject.content !== '<p></p>' && (
         <div className="ap-section-content">
-          <div className="ap-section-label">📋 Notas de apertura</div>
+          <div className="ap-section-label">📋 Lista de Vocabulario</div>
           <div
             className="cc-rich-content"
             dangerouslySetInnerHTML={{ __html: dayContent.sections.subject.content }}
