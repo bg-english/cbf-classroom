@@ -11,7 +11,6 @@ export const ACADEMIC_PERIODS = [
   { value: '1', label: `1.er Período ${_year}`, short: 'P1', start: `${_year}-02-04`, end: `${_year}-04-30` },
   { value: '2', label: `2.° Período ${_year}`,  short: 'P2', start: `${_year}-05-01`, end: `${_year}-08-21` },
   { value: '3', label: `3.er Período ${_year}`, short: 'P3', start: `${_year}-08-24`, end: `${_year}-11-13` },
-  { value: '4', label: `4.° Período ${_year}`,  short: 'P4', start: null,             end: null             },
 ]
 
 /** Returns the active period for today, or null if between periods. */
