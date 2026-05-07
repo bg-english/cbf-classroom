@@ -6,30 +6,25 @@ import ToolsPanel from './ToolsPanel'
 import Whiteboard from './Whiteboard'
 
 /*
- * Moment colors — medium saturation, eye-care friendly.
+ * ABC del Encuentro Académico — Boston Flex Methodological Approach 2026
+ * Orden y nombres alineados con la fuente oficial (pp. 58-59):
  *
- * Rationale (educational color psychology):
- *  1 Apertura  — warm coral:  welcoming, energising start
- *  2 Presentación — teal:     calm focus, receptive listening
- *  3 Desarrollo — green:      growth, active work, safety
- *  4 Aplicación — violet:     creativity, deeper thinking
- *  5 Tarea     — sky-blue:    clarity, structured intent
- *  6 Cierre    — amber:       warmth, closure, reflection
+ *  1 Encuentro   — coral:   saludo, vocab list, principio bíblico
+ *  2 Tema del Día — teal:   tablero (fecha · tema · objetivo · principio)
+ *  3 Motivación  — green:   WBT rules + pre-conocimiento + conexión temática
+ *  4 Desarrollo  — violet:  habilidad del día, modelado, práctica
+ *  5 Cierre      — amber:   verificación + reflexión bíblica
+ *  6 Tarea       — sky-blue: Weekly Challenge / Assignment
  *
- * All colours meet WCAG AA contrast on white text (#fff).
- */
-/*
- * Moment colors — optimized for light theme + classroom visibility.
- * High saturation for contrast on white, but not neon.
- * Must be readable as white text on colored badge backgrounds.
+ * Colores: WCAG AA sobre texto blanco (#fff), visibles a 5m+ en pantalla 55"-100".
  */
 const MOMENTS = [
-  { id: 1, key: 'subject',    label: 'Apertura',     color: '#dc2626', section: 'subject'    },
-  { id: 2, key: 'motivation', label: 'Presentación', color: '#0891b2', section: 'motivation' },
-  { id: 3, key: 'activity',   label: 'Desarrollo',   color: '#16a34a', section: 'activity'   },
-  { id: 4, key: 'skill',      label: 'Aplicación',   color: '#7c3aed', section: 'skill'      },
-  { id: 5, key: 'assignment', label: 'Tarea',        color: '#2563eb', section: 'assignment' },
-  { id: 6, key: 'closing',    label: 'Cierre',       color: '#d97706', section: 'closing'    },
+  { id: 1, key: 'subject',    label: 'Encuentro',    color: '#dc2626', section: 'subject'    },
+  { id: 2, key: 'motivation', label: 'Tema del Día', color: '#0891b2', section: 'motivation' },
+  { id: 3, key: 'activity',   label: 'Motivación',   color: '#16a34a', section: 'activity'   },
+  { id: 4, key: 'skill',      label: 'Desarrollo',   color: '#7c3aed', section: 'skill'      },
+  { id: 5, key: 'closing',    label: 'Cierre',       color: '#d97706', section: 'closing'    },
+  { id: 6, key: 'assignment', label: 'Tarea',        color: '#2563eb', section: 'assignment' },
 ]
 
 export default function ClassroomFrame({ teacher, resolved, classroomData, onChangeClass, onSignOut }) {

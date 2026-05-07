@@ -342,10 +342,10 @@ function MediaVideo({ video }) {
 }
 
 const MOMENT_ICONS = {
-  1: '✝',
-  2: '🗒',
-  3: '⚡',
-  4: '🎯',
-  5: '📝',
-  6: '🚪',
+  1: '✝',   // Encuentro — principio bíblico + vocab
+  2: '🗒',  // Tema del Día — tablero
+  3: '⚡',  // Motivación — pre-conocimiento + WBT
+  4: '🎯',  // Desarrollo — habilidad del día
+  5: '🚪',  // Cierre — verificación + reflexión
+  6: '📝',  // Tarea — assignment
 }
