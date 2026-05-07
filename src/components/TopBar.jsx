@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { getCurrentPeriod, getPeriodProgress } from '../utils/periodUtils'
 
 /**
  * TopBar — always-visible header.
@@ -14,6 +15,9 @@ export default function TopBar({
   const [elapsed, setElapsed] = useState(0) // seconds since session start
   const [sessionStart] = useState(Date.now())
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const period   = useMemo(() => getCurrentPeriod(), [])
+  const progress = useMemo(() => getPeriodProgress(period), [period])
 
   useEffect(() => {
     const tick = setInterval(() => {
@@ -48,6 +52,14 @@ export default function TopBar({
           <span className="cc-topbar-grade">{combinedGrade}</span>
           <span className="cc-topbar-subject">{assignment?.subject}</span>
           <span className="cc-topbar-date">{dateLabel}</span>
+          {period && progress && (
+            <span className="cc-period-badge" title={period.label}>
+              {period.short}
+              {progress.remainingWeeks > 0 && (
+                <span className="cc-period-weeks"> · {progress.remainingWeeks}sem</span>
+              )}
+            </span>
+          )}
         </div>
       </div>
 
