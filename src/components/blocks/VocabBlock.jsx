@@ -7,7 +7,8 @@ import { useState } from 'react'
  * Interactive: teacher activa reveal individual.
  */
 export default function VocabBlock({ data, accent, emphasis }) {
-  const { terms = [], presentationMode = 'cards', title } = data
+  const { terms = [], displayMode = 'cards', title } = data
+  const presentationMode = displayMode
   const [revealed, setRevealed] = useState({})
   const [interactive, setInteractive] = useState(false)
 

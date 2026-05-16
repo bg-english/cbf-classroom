@@ -72,16 +72,16 @@ function ExitTicketBlock({ data, accent }) {
       <div className="br-block-header">
         <span className="br-block-icon">🎟️</span>
         <span className="br-block-label">Exit Ticket</span>
-        {data.collectionMethod && (
-          <span className="br-block-chip">{data.collectionMethod}</span>
+        {data.collectMethod && (
+          <span className="br-block-chip">{data.collectMethod}</span>
         )}
       </div>
 
       {data.question && <p className="br-exit-question">{data.question}</p>}
 
-      {data.responseType === 'yes-no' && (
+      {data.responseType === 'thumbs' && (
         <div className="br-exit-options">
-          {['✓ Sí, lo entendí', '~ Más o menos', '✗ Necesito ayuda'].map((opt, i) => (
+          {['👍 Entendí', '😐 Más o menos', '👎 No entendí'].map((opt, i) => (
             <button
               key={i}
               className={`br-exit-opt ${selection === i ? 'br-exit-opt-active' : ''}`}
@@ -112,7 +112,7 @@ function ExitTicketBlock({ data, accent }) {
         </div>
       )}
 
-      {data.responseType === 'open' && (
+      {data.responseType === 'written' && (
         <div className="br-exit-open">
           <div className="br-writing-lines">
             {[0, 1, 2].map(i => <div key={i} className="br-writing-line" />)}
@@ -129,14 +129,14 @@ function HomeworkBlock({ data, accent }) {
       <div className="br-block-header">
         <span className="br-block-icon">📝</span>
         <span className="br-block-label">Tarea</span>
-        {data.date && <span className="br-hw-date">📅 {data.date}</span>}
+        {data.dueLabel && <span className="br-hw-date">📅 {data.dueLabel}</span>}
       </div>
       {data.instruction && <p className="br-hw-instruction">{data.instruction}</p>}
       {data.platform && <div className="br-hw-platform">{data.platform}</div>}
-      {data.url && (
+      {data.platformUrl && (
         <div className="br-hw-url">
           <span className="br-hw-url-icon">🔗</span>
-          <span className="br-hw-link">{data.url}</span>
+          <span className="br-hw-link">{data.platformUrl}</span>
         </div>
       )}
       {data.parentNote && (
