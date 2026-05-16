@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdftotext \"C:/BOSTON FLEX/ClassroomOS/cbf-classroom/theoric mark/Boston Flex Methodological Approach 2026.pdf\" -)",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "Bash(npm run:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh issue:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(npx vite:*)",
+      "Read(//c/BOSTON FLEX/ClassroomOS/cbf-planner/theoric mark/**)",
+      "Read(//c/BOSTON FLEX/ClassroomOS/cbf-planner/**)",
+      "Bash(python3 -c \"import pdfplumber; pdf = pdfplumber.open\\('C:/BOSTON FLEX/ClassroomOS/cbf-planner/theoric mark/Boston Flex Methodological Approach 2026.pdf'\\); print\\(len\\(pdf.pages\\), 'pages'\\)\")",
+      "Bash(python -c \"import pdfplumber; pdf = pdfplumber.open\\('C:/BOSTON FLEX/ClassroomOS/cbf-planner/theoric mark/Boston Flex Methodological Approach 2026.pdf'\\); print\\(len\\(pdf.pages\\), 'pages'\\)\")",
+      "Bash(dir \"C:\\\\BOSTON FLEX\\\\ClassroomOS\")",
+      "Bash(node --input-type=module)",
+      "Bash(python3 -c ':*)",
+      "Bash(node -e ':*)",
+      "Bash(powershell:*)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__list_tables",
+      "Bash(node:*)",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "Bash(find:*)",
+      "Bash(grep ALTER TABLE lesson_plans:*)",
+      "Bash(wc -l \"/c/BOSTON FLEX/ClassroomOS/cbf-planner/src/pages/\"*.jsx)",
+      "Bash(wc -l \"/c/BOSTON FLEX/ClassroomOS/cbf-planner/src/components/\"*.jsx)"
+    ]
+  }
+}

@@ -50,6 +50,263 @@
 
 ## Pendiente
 
+### Fase 0.7 — Guide Experience Engine (GXE)
+> **Filosofía:** La guía NO es un documento — es el programa de instrucción ejecutable.  
+> CBF Planner es el estudio de grabación. ClassroomOS es el escenario en vivo. El DOCX es solo la partitura impresa.  
+> Cada dato en la guía lleva metadata de **qué mostrar** y **cómo mostrarlo**.  
+> **Impacto docente:** "Mis guías son mejores solo porque las hago con esta App."  
+> **Impacto alumno:** La pantalla del salón se ve como material de Cambridge o National Geographic Learning.
+
+#### Estado actual (lo que ya existe y sus limitaciones)
+- [x] Editor TipTap de texto libre por sección — funciona, pero es una caja vacía sin estructura
+- [x] SmartBlocks (18 tipos) — funcionan, pero están desconectados de los patrones de actividad
+- [x] ImageUploader — funciona, pero imágenes estáticas sin anotación
+- [x] `contentAnalyzer.js` en ClassroomOS — detecta 7 layouts por estructura HTML, no por significado
+- [x] Syllabus — CRUD básico funciona, pero no conecta con el editor
+- [x] Biblioteca — upload funciona, pero fragmentos y anotación de PDF nunca se implementaron
+- [x] Export DOCX — funciona, pero es el único output (debería ser solo la capa imprimible)
+
+#### Cambios de arquitectura fundamentales
+- El **Logro** es el elemento rey de la guía. Aparece prominente en el header impreso y en el editor. Los indicadores son hijos del Logro.
+- El editor pasa de **HTML libre** a **bloques tipados** con metadata de presentación.
+- Cada bloque lleva `display` (cómo se ve en ClassroomOS) y `printLayout` (cómo se imprime en DOCX).
+- ClassroomOS lee bloques estructurados, no HTML crudo. Fallback a HTML para guías legacy.
+- **Toggle ES/EN** en el editor — labels de momentos, fases y patrones en ambos idiomas.
+- El flujo de diseño es **Objetivo → Recurso → Patrón**, nunca al revés.
+
+---
+
+#### GXE Sprint 1 — Modelo de bloques y schema de datos ✅
+> Sin esto nada más funciona. Es el cambio de modelo de datos.
+
+- [x] **`blockSchema.js`** (`cbf-planner/src/utils/blockSchema.js`) — schema completo con Zod:
+  - 12 tipos de bloque: `explanation`, `procedure`, `vocab`, `model`, `image`, `question`, `teacher-note`, `media`, `scaffold`, `pattern`, `rich-text`, `smart-block`
+  - 2 tipos adicionales Sprint 3: `exit-ticket`, `homework`
+  - `STEP_ACTIONS`, `EMPHASIS`, `REVEAL_MODE`, `SCAFFOLD_PHASE` — constantes de display
+  - `PRINT_LAYOUTS` — metadata de export por tipo
+  - `createBlock()`, `validateBlock()`, `sectionHasBlocks()`, `createScaffoldBlock()`, `flattenBlocks()`
+- [x] **Backward compat** — `section.blocks` coexiste con `section.content` (HTML legacy). Fallback automático.
+- [x] **Validación con Zod** — schemas por tipo en `DATA_SCHEMAS`, `displaySchema`, `blockSchema`
+- [x] **Corrección del Logro** en `exportDocx.js`:
+  - Row 1: Header azul "LOGRO"
+  - Row 2: Texto del logro prominente (24pt bold, fondo #EEF3FA)
+  - Indicadores como secundarios debajo del logro
+  - Principio bíblico en fila ámbar separada
+
+---
+
+#### GXE Sprint 2 — Catálogo de patrones de actividad ✅
+> Los patrones son estructuras de interacción probadas que se llenan con contenido. No se inventan actividades — se aplican patrones al contenido del día.
+
+- [x] **`activityPatterns.js`** (`cbf-planner/src/utils/activityPatterns.js`) — catálogo completo:
+  - `PATTERN_FAMILIES`, `SKILLS`, `THINKING`, `INPUT_FIELD_TYPES`
+  - `suggestPatterns({skills, keywords, family})` — scoring por skill match (×3) + keyword trigger (×2)
+  - `getPattern(id)`, `getPatternsByFamily(family)`, `getPatternsForPhase(phase)`
+
+- [x] **Patrones implementados (9):**
+
+  **INPUT (I DO):**
+  - [x] `guided-noticing` — Ejemplos que revelan la regla
+  - [x] `model-text` — Texto modelo anotado
+  - [x] `picture-narration` — Imagen anotada como ancla visual
+
+  **PROCESSING (WE DO):**
+  - [x] `information-gap` — A tiene lo que B necesita, cooperan hablando
+  - [x] `dictogloss` — Escuchar → reconstruir → comparar
+  - [x] `think-pair-share` — Individual → pareja → clase (con timer por fase)
+  - [ ] `jigsaw`, `ranking`, `odd-one-out`, `categorizing`, `sequencing`, `matching`, `disappearing-text`, `sentence-auction`, `back-to-the-board` — pendientes
+
+  **OUTPUT (YOU DO):**
+  - [x] `guided-writing` — Escritura con modelo/scaffold/sentence starters
+  - [ ] `role-play`, `presentation`, `creative-task`, `survey-interview`, `problem-solving`, `picture-description` — pendientes
+
+  **ACTIVATION:**
+  - [x] `hook` — Recurso provocador + pregunta detonadora
+  - [ ] `kwl`, `brainstorm`, `prediction`, `quick-poll` — pendientes
+
+  **ASSESSMENT:**
+  - [x] `three-two-one` — 3 aprendí, 2 me interesaron, 1 pregunta
+  - [ ] `exit-ticket` (patrón), `one-sentence-summary`, `thumbs-check` — pendientes
+
+- [x] **Ayuda contextual completa** por patrón: nombre/desc ES/EN, "¿Por qué funciona?", pasos docente (antes/durante/después), pasos estudiante, `aiTriggers[]`, `classroomDisplay`, `printLayout`
+
+---
+
+#### GXE Sprint 2b — Editor de bloques UI (cbf-planner) ✅
+> Los formularios, el editor canvas y el PatternPicker. El docente ve bloques tipados, no una caja vacía.
+
+- [x] **`BlockEditor.jsx`** — editor orquestador:
+  - `BlockCard` — tarjeta colapsable por bloque (header, summary, form, emphasis selector)
+  - `BlockList` — lista + picker con tipos disponibles por fase/sección
+  - `ScaffoldBlock` — 3 tabs (I DO / WE DO / YOU DO) con BlockList anidada por fase
+  - `MomentoHint` — banner contextual (dismissable, desaparece al completar)
+  - Toggle modo bloques / texto libre en `DayPanel.jsx`
+
+- [x] **Formularios de bloque:**
+  - `ExplanationForm` — texto + grammarTarget + highlightTerms dinámicos
+  - `ProcedureForm` — pasos con ACTION (listen/read/write/speak/observe/think/do/check) + reorder
+  - `ModelForm` — texto modelo + label + grammarTarget + fuente
+  - `QuestionForm` — pregunta + 4 subtipos (discussion / TPS / individual / retórica) + guidance privada
+  - `TeacherNoteForm` — nota privada con 3 niveles de prioridad
+  - `PatternForm` — despacha al PatternPicker → llena inputs específicos del patrón elegido
+  - `VocabForm` — términos (word/definition/example/pronunciation) + modo presentación (tarjetas/lista/compacto)
+  - `ExitTicketForm` — pregunta + 4 tipos de respuesta + método de recolección
+  - `HomeworkForm` — instrucción + plataforma (datalist) + URL validada + fecha + nota para padres
+
+- [x] **`PatternPicker.jsx`** — slide-over panel completo:
+  - Family tabs (I DO / WE DO / YOU DO / Activación / Cierre)
+  - Pattern cards con description inline, skills chips, grouping, duration
+  - Detail panel: "¿Por qué funciona?" + pasos docente + pasos estudiante + chips
+  - AI suggestions strip (top 3 por match de skills/keywords)
+  - Toggle ES / EN
+
+- [x] **Catálogo momento-aware** (`SECTION_BLOCKS`):
+  | Momento | Bloques disponibles |
+  |---|---|
+  | ENCUENTRO | Vocabulario, Pregunta, Nota docente, Texto libre |
+  | TEMA DEL DÍA | Pregunta, Nota docente, Texto libre |
+  | MOTIVACIÓN | Patrón, Pregunta, Procedimiento, Nota, Texto libre |
+  | DESARROLLO | Scaffold I DO/WE DO/YOU DO |
+  | CIERRE | Exit Ticket, Pregunta, Nota, Texto libre |
+  | TAREA | Tarea, Nota docente, Texto libre |
+
+- [x] **Empty states** con pista concreta por fase y sección
+- [x] **RichText como fallback** con badge de advertencia
+- [ ] Drag & drop para reordenar bloques — pendiente
+- [ ] Preview en vivo "así se verá en ClassroomOS" — pendiente (Sprint 4)
+- [ ] Anotador de imágenes (bloque `image`) — pendiente (Sprint 5)
+
+---
+
+#### GXE Sprint 3 — Canvas momento-aware + tipos por momento ✅
+> Completado junto con Sprint 2b. Cada momento tiene su catálogo propio.
+
+- [x] Canvas por momento con `SECTION_BLOCKS` y `MOMENTO_HINTS`
+- [x] Tipos específicos: `exit-ticket` (CIERRE), `homework` (TAREA), `vocab` (ENCUENTRO)
+- [x] Hints contextuales por momento con tip pedagógico específico
+- [x] Indicadores de completitud por fase y sección vacía
+
+---
+
+#### GXE Sprint 4 — Renderer en ClassroomOS (cbf-classroom) ✅
+> ClassroomOS lee bloques estructurados y los renderiza profesionalmente. Fallback a HTML legacy.
+
+- [x] **`BlockRenderer.jsx`** (`cbf-classroom/src/components/blocks/`) — dispatcher principal:
+  - `<ExplanationBlock>` — texto con highlights de grammarTarget
+  - `<ProcedureBlock>` — timeline vertical con iconos de acción (listen/read/write/speak/observe/think/do/check)
+  - `<VocabBlock>` — cards con reveal interactivo, tabla, o chips compactos
+  - `<ModelBlock>` — blockquote prominente con grammarTarget resaltado
+  - `<QuestionBlock>` — pregunta grande con área de escritura y guidance docente
+  - `<TeacherNoteBlock>` — nota privada con 3 niveles de prioridad
+  - `<PatternBlock>` — dispatcher por patternId
+  - `<ScaffoldBlock>` — tabs I DO / WE DO / YOU DO con BlockRenderer recursivo
+  - `<ExitTicketBlock>` — yes/no, escala 1-5, respuesta abierta
+  - `<HomeworkBlock>` — instrucción + plataforma + URL + nota para padres
+  - `<RichTextBlock>` — fallback HTML libre
+
+- [x] **Renderers de patrones** (`PatternBlock.jsx` + inline renderers):
+  - `<HookDisplay>` — recurso + pregunta detonadora
+  - `<ThinkPairShareDisplay>` — 3 fases con timer SVG circular (play/pause/reset)
+  - `<InformationGapDisplay>` — split A/B + useful language collapsible
+  - `<DictoglossDisplay>` — 3 etapas: escuchar → reconstruir → comparar
+  - `<GuidedWritingDisplay>` — prompt + starters + modelo collapsible + líneas
+  - `<GuidedNoticingDisplay>` — ejemplos + reveal de la regla
+  - `<ModelTextDisplay>` — texto modelo con annotation
+  - `<ThreeTwoOneDisplay>` — 3 cards con líneas de escritura por fase
+  - `<PictureNarrationDisplay>` — imagen + vocab chips + pregunta
+  - `<GenericPatternDisplay>` — fallback para patrones sin renderer
+
+- [x] **Fallback para guías legacy:**
+  - Si `section.blocks` existe → usar BlockRenderer
+  - Si solo `section.content` (HTML) existe → usar `contentAnalyzer.js` + `ContentLayout` actual
+  - Transición transparente: guías viejas siguen funcionando sin migración manual
+
+- [x] **CSS de bloques** (`src/blocks.css`) — 600+ líneas optimizadas para 15"–100":
+  - Fluid scaling via clamp() heredado de :root
+  - Iconografía contextual en ProcedureBlock
+  - Timer SVG circular animado en ThinkPairShare
+  - Highlight automático de grammarTarget en Explanation + Model
+  - Selección de texto habilitada en todos los bloques de contenido
+
+- [ ] AnnotatedImage (bloque `image`) — pendiente Sprint 5
+- [ ] MediaBlock con cue points — pendiente Sprint 5
+
+---
+
+#### GXE Sprint 5 — Syllabus + Biblioteca conectados al editor ✅
+> El Syllabus alimenta el editor con temas/objetivos. La Biblioteca provee recursos verificados.
+
+- [x] **`SyllabusResourcePanel.jsx`** (`cbf-planner/src/components/editor/`) — nuevo componente activo:
+  - Por cada tema del syllabus: badge de tipo, preview de descripción, botones de acción
+  - "→ Tema del día" — llena `day.unit` del día activo con un clic
+  - "→ [Sección]" — inserta descripción como HTML en la sección pedagógicamente correcta:
+    - `grammar/skill` → Habilidad, `vocabulary` → Encuentro, `concept` → Motivación, `value` → Cierre
+  - Append si la sección ya tiene contenido; reemplaza si está vacía
+  - Mensaje guía cuando no hay día seleccionado
+  - Por cada recurso de Biblioteca: "👁 Ver PDF" (abre file_url en nueva pestaña) + "📌 Insertar referencia" (inserta `<em>📖 Ref.: Libro, p.12, 13</em>` en Habilidad)
+
+- [x] **`GuideEditorPage.jsx`** — tres cambios quirúrgicos:
+  - Query `syllabusBookPages` ahora incluye `file_url` de `school_library`
+  - Panel estático de book pages (solo texto) → `<SyllabusResourcePanel>` con acciones
+  - Panel estático de syllabus topics (solo lectura) → `<SyllabusResourcePanel>` completo con topics + books
+  - `DayPanel` recibe nuevo prop `syllabusTopics={linkedSyllabusTopics}`
+
+- [x] **`DayPanel.jsx`** — hint de syllabus en campo "Asignatura / Unidad":
+  - Cuando el campo está vacío y hay temas en el syllabus → chips clickeables para llenar el campo
+  - Máximo 3 chips para no saturar la UI
+
+- [ ] Auto-fill suggestion toast al abrir guía con topics pero secciones vacías — pendiente Sprint 6
+- [ ] Fragment extraction UI (selección rectangular en PDF) — pendiente Sprint 6
+- [ ] Flujo integrado Objetivo → Recurso → Patrón en PatternPicker — pendiente Sprint 6
+
+---
+
+#### GXE Sprint 6 — AI como copiloto (no como compositor)
+> La AI sugiere desde lo que EXISTE, nunca desde la imaginación. No inventa recursos.
+
+- [ ] **AI en matching de patrones:**
+  - Dado el Logro + indicador + habilidad → sugiere los 3 mejores patrones de actividad
+  - Ranking basado en: skill match, grouping, duration fit, variety (no repetir el mismo patrón)
+  - Estrellas (⭐) junto a los patrones sugeridos en el editor
+
+- [ ] **AI en generación de contenido DENTRO del patrón:**
+  - Dado un patrón + tema + nivel → genera el contenido (cards A/B, preguntas, items, etc.)
+  - SOLO usa vocabulario del syllabus y recursos de la biblioteca
+  - El docente revisa y aprueba antes de guardar
+
+- [ ] **AI en anotación de imágenes:**
+  - Al subir una imagen, detecta objetos y sugiere etiquetas
+  - El docente acepta, rechaza, o edita cada sugerencia
+
+- [ ] **AI en validación de guía completa:**
+  - Revisa si cada momento tiene contenido suficiente
+  - Detecta si falta una fase del scaffold (I DO / WE DO / YOU DO)
+  - Sugiere mejoras: "Tu WE DO es solo texto — considera agregar un patrón de actividad"
+  - Verifica coherencia: ¿el contenido del WE DO practica lo que el I DO explica?
+
+- [ ] **AI NUNCA hace esto:**
+  - Inventar URLs de videos o recursos que no ha verificado
+  - Generar actividades que requieran materiales inexistentes
+  - Reemplazar el juicio del docente — siempre sugiere, nunca impone
+  - Si no puede verificar un recurso, dice "necesitas subir o enlazar un recurso para esta parte"
+
+---
+
+#### GXE Sprint 7 — Export DOCX desde bloques (la capa imprimible)
+> El DOCX es una proyección plana de la guía, no la guía misma.
+
+- [ ] **Reescribir `exportDocx.js`** para leer bloques en vez de HTML:
+  - Cada tipo de bloque tiene su propio renderer DOCX
+  - Patrones de actividad → tabla con instrucciones + materiales
+  - Imágenes anotadas → imagen + leyenda con descripción de anotaciones
+  - Scaffold → secciones con headers "I DO / WE DO / YOU DO"
+  - Teacher notes → texto en gris o itálica
+  - **Logro prominente en el header** — más grande que indicadores
+
+- [ ] **Fallback para bloques legacy** — si una guía tiene HTML viejo, exportar como antes
+
+---
+
 ### Fase 1 — Fundamentos en tiempo real
 > Objetivo: El docente ve quién está conectado a la clase en tiempo real.  
 > Impacto padre: "Mi hijo está conectado y participando activamente."

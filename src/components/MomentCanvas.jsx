@@ -1,5 +1,6 @@
 import AperturaDevocional from './AperturaDevocional'
 import SmartBlock from './SmartBlock'
+import BlockRenderer from './blocks/BlockRenderer'
 import { analyzeContent } from '../utils/contentAnalyzer'
 
 /**
@@ -115,6 +116,7 @@ export default function MomentCanvas({
  * Uses contentAnalyzer to auto-detect the best layout for the HTML content.
  */
 function SectionContent({ moment, sectionContent, plan, dayContent }) {
+  const hasBlocks      = sectionContent?.blocks?.length > 0
   const hasContent     = sectionContent?.content && sectionContent.content !== '<p></p>'
   const hasSmartBlocks = sectionContent?.smartBlocks?.length > 0
   const hasVideos      = sectionContent?.videos?.length > 0
@@ -122,7 +124,7 @@ function SectionContent({ moment, sectionContent, plan, dayContent }) {
   const hasImages      = sectionContent?.images?.length > 0
   const imageLayout    = sectionContent?.image_layout || null
 
-  if (!hasContent && !hasSmartBlocks && !hasVideos && !hasAudios) {
+  if (!hasBlocks && !hasContent && !hasSmartBlocks && !hasVideos && !hasAudios) {
     return (
       <div className="cc-canvas-empty">
         <div className="cc-canvas-empty-icon" style={{ color: moment.color }}>
@@ -147,8 +149,16 @@ function SectionContent({ moment, sectionContent, plan, dayContent }) {
   return (
     <div className="sc-container">
 
-      {/* ── Contenido principal — layout inteligente ── */}
-      {hasContent && (
+      {/* ── Bloques estructurados (GXE Sprint 4) ── */}
+      {hasBlocks && (
+        <BlockRenderer
+          blocks={sectionContent.blocks}
+          accent={moment.color}
+        />
+      )}
+
+      {/* ── Contenido HTML legacy — solo si no hay bloques ── */}
+      {!hasBlocks && hasContent && (
         <ContentLayout
           analysis={analysis}
           html={sectionContent.content}
