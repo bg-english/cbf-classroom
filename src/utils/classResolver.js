@@ -26,15 +26,29 @@ function todayISO() {
 }
 
 /**
- * Get ISO week number for a date string
+ * Get the Monday (YYYY-MM-DD) of the week that contains the given date string.
  */
-function isoWeekNumber(dateStr) {
-  const date = new Date(dateStr)
-  const jan4 = new Date(date.getFullYear(), 0, 4)
-  const startOfWeek = new Date(jan4)
-  startOfWeek.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7))
-  const diff = date - startOfWeek
-  return Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1
+function getMondayISO(dateStr) {
+  const date = new Date(dateStr + 'T12:00:00')
+  const day = date.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  date.setDate(date.getDate() + diff)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/**
+ * Add N days to an ISO date string, returns ISO string.
+ */
+function addDaysISO(isoDate, n) {
+  const date = new Date(isoDate + 'T12:00:00')
+  date.setDate(date.getDate() + n)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 /**
@@ -67,7 +81,7 @@ export async function resolveCurrentClass(teacher, options = {}) {
 
   const today = options.forceDate || todayISO()
   const nowMin = options.forceTime ? timeToMin(options.forceTime) : nowInMinutes()
-  const weekNumber = isoWeekNumber(today)
+  const todayMonday = getMondayISO(today)
 
   // 1. Load teacher assignments for this school
   const { data: assignments, error: aErr } = await supabase
@@ -117,17 +131,19 @@ export async function resolveCurrentClass(teacher, options = {}) {
 
   const { data: plans } = await supabase
     .from('lesson_plans')
-    .select('id, grade, subject, week_number, date_range, content, status, week_count')
+    .select('id, grade, subject, week_number, date_range, content, status, week_count, monday_date')
     .eq('teacher_id', teacher.id)
     .eq('grade', combinedGrade)
     .eq('subject', matched.subject)
     .order('created_at', { ascending: false })
     .limit(10)
 
-  // Find plan whose week_number matches current week (or contains it for 2-week plans)
+  // Match plan by monday_date (reliable, date-based) — week_number varies by algorithm
   const plan = plans?.find(p => {
-    if (p.week_number === weekNumber) return true
-    if (p.week_count === 2 && p.week_number === weekNumber - 1) return true
+    if (!p.monday_date) return false
+    if (p.monday_date === todayMonday) return true
+    // 2-week plans: also match the second week
+    if (p.week_count === 2 && addDaysISO(p.monday_date, 7) === todayMonday) return true
     return false
   }) || plans?.[0] || null
 
