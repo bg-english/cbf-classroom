@@ -34,6 +34,12 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   const { assignment, plan, todayKey, dayContent, combinedGrade } = resolved
+
+  // Determine day class status (backward compat: active===false → no_class)
+  const classStatus = dayContent?.class_status
+    || (dayContent?.active === false ? 'no_class' : 'normal')
+  const isSpecialDay = classStatus !== 'normal'
+
   const moment = MOMENTS[activeMoment]
   const sectionContent = dayContent?.sections?.[moment.section] || null
 
@@ -121,6 +127,15 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
 
       {toolsOpen ? (
         <ToolsPanel onClose={() => setToolsOpen(false)} />
+      ) : isSpecialDay ? (
+        <SpecialDayCanvas
+          classStatus={classStatus}
+          statusReason={dayContent?.status_reason}
+          todayKey={todayKey}
+          plan={plan}
+          assignment={assignment}
+          combinedGrade={combinedGrade}
+        />
       ) : (
         <MomentCanvas
           moment={moment}
@@ -140,5 +155,86 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
 
       {whiteboardOpen && <Whiteboard onClose={() => setWhiteboardOpen(false)} />}
     </div>
+  )
+}
+
+// ── SpecialDayCanvas — shown when class_status !== 'normal' ───────────────────
+
+const SPECIAL_DAY_CONFIG = {
+  no_class: {
+    icon: '🚫',
+    title: 'No hubo clase',
+    color: '#dc2626',
+    bg: '#fef2f2',
+    defaultReason: 'Día sin clase',
+  },
+  async: {
+    icon: '🏠',
+    title: 'Clase asincrónica',
+    color: '#2563eb',
+    bg: '#eff6ff',
+    defaultReason: 'Los estudiantes trabajan desde casa',
+  },
+  interrupted: {
+    icon: '⚑',
+    title: 'Clase interrumpida',
+    color: '#d97706',
+    bg: '#fffbeb',
+    defaultReason: 'Actividad institucional',
+  },
+}
+
+function SpecialDayCanvas({ classStatus, statusReason, todayKey, plan, assignment, combinedGrade }) {
+  const cfg = SPECIAL_DAY_CONFIG[classStatus] || SPECIAL_DAY_CONFIG.no_class
+
+  const dateLabel = todayKey
+    ? new Date(todayKey + 'T12:00:00').toLocaleDateString('es-CO', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      })
+    : ''
+
+  const subjectLabel = assignment?.subject || ''
+  const gradeLabel   = combinedGrade || ''
+
+  return (
+    <main className="cc-canvas cc-special-day" style={{ '--moment-color': cfg.color }}>
+      <div className="cc-special-day-inner" style={{ background: cfg.bg }}>
+
+        {/* Icon */}
+        <div className="cc-special-icon">{cfg.icon}</div>
+
+        {/* Title */}
+        <h2 className="cc-special-title" style={{ color: cfg.color }}>{cfg.title}</h2>
+
+        {/* Date */}
+        {dateLabel && (
+          <p className="cc-special-date" style={{ color: cfg.color }}>
+            {dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)}
+          </p>
+        )}
+
+        {/* Reason */}
+        <div className="cc-special-reason">
+          {statusReason || cfg.defaultReason}
+        </div>
+
+        {/* Context */}
+        {(subjectLabel || gradeLabel) && (
+          <div className="cc-special-context">
+            {gradeLabel && <span>{gradeLabel}</span>}
+            {subjectLabel && <span>{subjectLabel}</span>}
+            {plan?.week_number && <span>Semana {plan.week_number}</span>}
+          </div>
+        )}
+
+        {/* Async instructions box */}
+        {classStatus === 'async' && statusReason && (
+          <div className="cc-special-async-box">
+            <div className="cc-special-async-label">📋 Instrucciones para casa:</div>
+            <div className="cc-special-async-text">{statusReason}</div>
+          </div>
+        )}
+      </div>
+    </main>
   )
 }

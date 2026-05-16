@@ -345,6 +345,49 @@ a { color: var(--accent); text-decoration: none; }
   flex: 1; display: flex; flex-direction: column;
   overflow: hidden; min-height: 0; /* critical: allows flex child to shrink */
 }
+
+/* ── Special Day Canvas ── */
+.cc-special-day { justify-content: center; align-items: center; }
+.cc-special-day-inner {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 20px;
+  padding: 64px 80px; border-radius: 24px;
+  max-width: 700px; width: 90%; text-align: center;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+}
+.cc-special-icon { font-size: 5rem; line-height: 1; }
+.cc-special-title {
+  font-size: var(--text-2xl, 2.2rem); font-weight: 800;
+  margin: 0; letter-spacing: -0.02em;
+}
+.cc-special-date {
+  font-size: var(--text-base, 1.1rem); margin: 0;
+  font-weight: 500; text-transform: capitalize; opacity: 0.8;
+}
+.cc-special-reason {
+  font-size: var(--text-lg, 1.4rem); font-weight: 600;
+  color: #0f172a; background: rgba(255,255,255,0.7);
+  padding: 14px 24px; border-radius: 12px;
+  max-width: 520px; line-height: 1.4;
+}
+.cc-special-context {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+}
+.cc-special-context span {
+  font-size: 0.85rem; padding: 4px 14px; border-radius: 20px;
+  background: rgba(255,255,255,0.6); color: #374151; font-weight: 600;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+.cc-special-async-box {
+  background: rgba(255,255,255,0.85); border-radius: 12px;
+  padding: 16px 24px; max-width: 520px; text-align: left;
+  border: 1px solid rgba(37,99,235,0.2);
+}
+.cc-special-async-label {
+  font-size: 0.85rem; font-weight: 700; color: #1d4ed8; margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.cc-special-async-text { font-size: 1rem; color: #1e3a8a; line-height: 1.5; }
 .cc-canvas-header {
   display: flex; align-items: center; gap: 16px;
   padding: 18px var(--canvas-padding) 14px;
