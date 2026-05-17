@@ -24,6 +24,7 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   const [whiteboardOpen, setWhiteboardOpen] = useState(false)
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
   const [aiOverlay, setAiOverlay] = useState(null)
+  const [videoOverlay, setVideoOverlay] = useState(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   const { assignment, plan, todayKey, dayContent, combinedGrade } = resolved
@@ -95,7 +96,7 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goNext() }
     if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev() }
     if (e.key >= '1' && e.key <= '6') setActiveMoment(Number(e.key) - 1)
-    if (e.key === 'Escape') { setToolsOpen(false); setAiPanelOpen(false); setAiOverlay(null) }
+    if (e.key === 'Escape') { setToolsOpen(false); setAiPanelOpen(false); setAiOverlay(null); setVideoOverlay(null) }
     if (e.key === 'a' || e.key === 'A') { e.preventDefault(); setAiPanelOpen(o => !o) }
     if (e.key === 'F11') { e.preventDefault(); toggleFullscreen() }
   }
@@ -157,6 +158,8 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
           m3SubStep={m3SubStep}
           aiOverlay={aiOverlay}
           onDismissAI={() => setAiOverlay(null)}
+          videoOverlay={videoOverlay}
+          onDismissVideo={() => setVideoOverlay(null)}
           t={t}
         />
       )}
@@ -170,7 +173,8 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
           moment={moment}
           combinedGrade={combinedGrade}
           todayKey={todayKey}
-          onProject={(result) => { setAiOverlay(result); setAiPanelOpen(false) }}
+          onProject={(result) => { setAiOverlay(result); setVideoOverlay(null); setAiPanelOpen(false) }}
+          onProjectVideo={(videoId) => { setVideoOverlay(videoId); setAiOverlay(null); setAiPanelOpen(false) }}
           onClose={() => setAiPanelOpen(false)}
           t={t}
         />

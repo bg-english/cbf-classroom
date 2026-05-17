@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useAI from '../hooks/useAI'
+import useYouTube from '../hooks/useYouTube'
 import { buildAIContext } from '../utils/aiContext'
 import { getQuickActions } from '../utils/aiActions'
 import BlockRenderer from './blocks/BlockRenderer'
@@ -12,8 +13,9 @@ import VisualRenderer from './VisualRenderer'
  * Design for classroom reality: teacher stands facing a 55"-100" touch screen,
  * students behind them. NO TYPING. Only large tappable buttons.
  *
- * Two tabs: "Visual" (diagrams, charts, maps) and "Activity" (exercises, questions).
- * One tap → AI generates → preview → tap "Proyectar" → appears on canvas.
+ * Three tabs: "Visual" (diagrams, charts, maps), "Activity" (exercises, questions),
+ * and "Video" (YouTube search by topic).
+ * One tap → AI generates / videos load → preview → tap "Proyectar" → appears on canvas.
  */
 
 const VISUAL_FORMATS = [
@@ -29,10 +31,11 @@ const VISUAL_FORMATS = [
 export default function AIPanel({
   assignment, plan, dayContent, classroomData,
   moment, combinedGrade, todayKey,
-  onProject, onClose, t
+  onProject, onProjectVideo, onClose, t
 }) {
-  const [tab, setTab] = useState('visual') // 'visual' | 'activity'
+  const [tab, setTab] = useState('visual') // 'visual' | 'activity' | 'video'
   const { loading, result, error, generate, cancel, clear, regenerate } = useAI()
+  const { loading: ytLoading, videos, error: ytError, search: ytSearch, clear: ytClear } = useYouTube()
 
   const context = buildAIContext({
     assignment, plan, dayContent, classroomData,
@@ -41,6 +44,13 @@ export default function AIPanel({
 
   const quickActions = getQuickActions(moment?.id, context.language)
   const isEn = context.language === 'English'
+
+  // Auto-search YouTube when Video tab is opened
+  useEffect(() => {
+    if (tab === 'video' && context.topic && !videos.length && !ytLoading) {
+      ytSearch(context.topic, { grade: context.grade, language: context.language })
+    }
+  }, [tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleVisual(formatId) {
     const prompt = isEn
@@ -57,6 +67,16 @@ export default function AIPanel({
     if (!result) return
     onProject(result)
     clear()
+  }
+
+  function handleProjectVideo(videoId) {
+    onProjectVideo(videoId)
+    ytClear()
+  }
+
+  function handleVideoTabRefresh() {
+    ytClear()
+    ytSearch(context.topic, { grade: context.grade, language: context.language })
   }
 
   const hasBlocks = result?.blocks?.length > 0
@@ -106,85 +126,155 @@ export default function AIPanel({
         >
           {isEn ? 'Activities' : 'Actividades'}
         </button>
+        <button
+          className={`ai-tab ${tab === 'video' ? 'ai-tab-active' : ''}`}
+          onClick={() => setTab('video')}
+          style={tab === 'video' ? { borderBottomColor: moment?.color } : {}}
+        >
+          {isEn ? 'Video' : 'Video'}
+        </button>
       </div>
 
       {/* Content area — scrollable */}
       <div className="ai-panel-body">
-        {/* Error */}
-        {error && (
-          <div className="ai-error">
-            <span>{error}</span>
-            <button onClick={clear}>✕</button>
+
+        {/* ── VIDEO TAB ── */}
+        {tab === 'video' && (
+          <div className="ai-video-tab">
+            {ytLoading && (
+              <div className="ai-loading">
+                <div className="ai-loading-dots">
+                  <span style={{ background: moment?.color }} />
+                  <span style={{ background: moment?.color }} />
+                  <span style={{ background: moment?.color }} />
+                </div>
+                <span className="ai-loading-text">{isEn ? 'Searching YouTube…' : 'Buscando en YouTube…'}</span>
+              </div>
+            )}
+
+            {ytError && (
+              <div className="ai-error">
+                <span>{ytError}</span>
+                <button onClick={ytClear}>✕</button>
+              </div>
+            )}
+
+            {!ytLoading && !ytError && videos.length > 0 && (
+              <>
+                <div className="ai-video-topic">
+                  <span>🔍</span>
+                  <span>{context.topic}</span>
+                  <button className="ai-video-refresh" onClick={handleVideoTabRefresh} title={isEn ? 'Refresh' : 'Actualizar'}>↻</button>
+                </div>
+                <div className="ai-video-grid">
+                  {videos.map(video => (
+                    <button
+                      key={video.id}
+                      className="ai-video-card"
+                      onClick={() => handleProjectVideo(video.id)}
+                    >
+                      <div className="ai-video-thumb">
+                        <img src={video.thumbnail} alt={video.title} loading="lazy" />
+                        <span className="ai-video-play">▶</span>
+                      </div>
+                      <div className="ai-video-info">
+                        <span className="ai-video-title">{video.title}</span>
+                        <span className="ai-video-channel">{video.channel}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {!ytLoading && !ytError && videos.length === 0 && !context.topic && (
+              <p className="ai-video-empty">
+                {isEn ? 'No topic found in today\'s lesson guide.' : 'No se encontró un tema en la guía de hoy.'}
+              </p>
+            )}
           </div>
         )}
 
-        {/* Loading */}
-        {loading && (
-          <div className="ai-loading">
-            <div className="ai-loading-dots">
-              <span style={{ background: moment?.color }} />
-              <span style={{ background: moment?.color }} />
-              <span style={{ background: moment?.color }} />
-            </div>
-            <span className="ai-loading-text">{t.aiGenerating}</span>
-            <button className="ai-cancel-btn" onClick={cancel}>{t.aiCancel}</button>
-          </div>
-        )}
+        {/* ── AI TABS (visual / activity) ── */}
+        {tab !== 'video' && (
+          <>
+            {/* Error */}
+            {error && (
+              <div className="ai-error">
+                <span>{error}</span>
+                <button onClick={clear}>✕</button>
+              </div>
+            )}
 
-        {/* Visual formats grid */}
-        {tab === 'visual' && !loading && !hasResult && (
-          <div className="ai-format-grid">
-            {VISUAL_FORMATS.map(fmt => (
-              <button
-                key={fmt.id}
-                className="ai-format-btn"
-                onClick={() => handleVisual(fmt.id)}
-                style={{ '--fmt-color': moment?.color }}
-              >
-                <span className="ai-format-icon">{fmt.icon}</span>
-                <span className="ai-format-label">{isEn ? fmt.labelEn : fmt.labelEs}</span>
-              </button>
-            ))}
-          </div>
-        )}
+            {/* Loading */}
+            {loading && (
+              <div className="ai-loading">
+                <div className="ai-loading-dots">
+                  <span style={{ background: moment?.color }} />
+                  <span style={{ background: moment?.color }} />
+                  <span style={{ background: moment?.color }} />
+                </div>
+                <span className="ai-loading-text">{t.aiGenerating}</span>
+                <button className="ai-cancel-btn" onClick={cancel}>{t.aiCancel}</button>
+              </div>
+            )}
 
-        {/* Activity quick actions */}
-        {tab === 'activity' && !loading && !hasResult && (
-          <div className="ai-format-grid">
-            {quickActions.map(qa => (
-              <button
-                key={qa.id}
-                className="ai-format-btn"
-                onClick={() => handleQuickAction(qa)}
-                style={{ '--fmt-color': moment?.color }}
-              >
-                <span className="ai-format-icon">{qa.icon}</span>
-                <span className="ai-format-label">{qa.label}</span>
-              </button>
-            ))}
-          </div>
-        )}
+            {/* Visual formats grid */}
+            {tab === 'visual' && !loading && !hasResult && (
+              <div className="ai-format-grid">
+                {VISUAL_FORMATS.map(fmt => (
+                  <button
+                    key={fmt.id}
+                    className="ai-format-btn"
+                    onClick={() => handleVisual(fmt.id)}
+                    style={{ '--fmt-color': moment?.color }}
+                  >
+                    <span className="ai-format-icon">{fmt.icon}</span>
+                    <span className="ai-format-label">{isEn ? fmt.labelEn : fmt.labelEs}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
-        {/* Preview */}
-        {hasResult && !loading && (
-          <div className="ai-preview">
-            <div className="ai-preview-content">
-              {hasVisual && (
-                <VisualRenderer visual={result.visual} accent={moment?.color} />
-              )}
-              {hasBlocks && (
-                <BlockRenderer blocks={result.blocks} accent={moment?.color} />
-              )}
-              {hasSmartBlock && (
-                <SmartBlock block={result.smartBlock} />
-              )}
-            </div>
-          </div>
+            {/* Activity quick actions */}
+            {tab === 'activity' && !loading && !hasResult && (
+              <div className="ai-format-grid">
+                {quickActions.map(qa => (
+                  <button
+                    key={qa.id}
+                    className="ai-format-btn"
+                    onClick={() => handleQuickAction(qa)}
+                    style={{ '--fmt-color': moment?.color }}
+                  >
+                    <span className="ai-format-icon">{qa.icon}</span>
+                    <span className="ai-format-label">{qa.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Preview */}
+            {hasResult && !loading && (
+              <div className="ai-preview">
+                <div className="ai-preview-content">
+                  {hasVisual && (
+                    <VisualRenderer visual={result.visual} accent={moment?.color} />
+                  )}
+                  {hasBlocks && (
+                    <BlockRenderer blocks={result.blocks} accent={moment?.color} />
+                  )}
+                  {hasSmartBlock && (
+                    <SmartBlock block={result.smartBlock} />
+                  )}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* Bottom action bar — always visible when result exists */}
-      {hasResult && !loading && (
+      {/* Bottom action bar — visible when AI result exists */}
+      {hasResult && !loading && tab !== 'video' && (
         <div className="ai-bottom-actions">
           <button
             className="ai-action-project"

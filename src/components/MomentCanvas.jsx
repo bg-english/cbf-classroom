@@ -9,7 +9,7 @@ export default function MomentCanvas({
   moment, sectionContent, plan, dayContent, classroomData,
   todayKey, combinedGrade, subject,
   onNext, onPrev, isFirst, isLast, m3SubStep,
-  aiOverlay, onDismissAI, t
+  aiOverlay, onDismissAI, videoOverlay, onDismissVideo, t
 }) {
   const biblicalPrinciple = classroomData?.biblicalPrinciple
     || plan?.content?.objetivo?.principio
@@ -65,8 +65,29 @@ export default function MomentCanvas({
           </>
         )}
 
+        {/* YouTube video overlay */}
+        {videoOverlay && (
+          <div className="yt-overlay">
+            <div className="yt-overlay-header">
+              <span className="yt-overlay-badge" style={{ background: moment.color }}>
+                ▶ YouTube
+              </span>
+              <button className="yt-overlay-dismiss" onClick={onDismissVideo}>✕</button>
+            </div>
+            <div className="yt-embed-wrap">
+              <iframe
+                className="yt-embed"
+                src={`https://www.youtube.com/embed/${videoOverlay}?autoplay=1&rel=0&modestbranding=1`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="YouTube video"
+              />
+            </div>
+          </div>
+        )}
+
         {/* AI-generated overlay content */}
-        {aiOverlay && (
+        {aiOverlay && !videoOverlay && (
           <div className="ai-overlay">
             <div className="ai-overlay-header">
               <span className="ai-overlay-badge" style={{ background: moment.color }}>
