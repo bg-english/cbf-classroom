@@ -141,8 +141,10 @@ export default function VerseScene({
               style={{ '--panel-delay': `${i * 0.08}s` }}
             >
               <div className="vs-panel-img-wrap">
-                {panel.imageUrl ? (
+                {panel.imageUrl && panel.imageUrl !== 'error' ? (
                   <img src={panel.imageUrl} alt={panel.caption} className="vs-panel-img" />
+                ) : panel.imageUrl === 'error' ? (
+                  <div className="vs-panel-no-img">⚠</div>
                 ) : (
                   <div className="vs-panel-generating">
                     <span className="vs-panel-gen-dot" />

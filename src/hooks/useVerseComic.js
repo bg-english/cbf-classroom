@@ -137,24 +137,22 @@ export function useVerseComic({
     setLoading(false)  // stop the "big" loading state; images load progressively
 
     // ── Phase 2: generate-image for each panel (sequential, proven working) ──
+    // Use only the scene description — generate-image already adds its own
+    // style guide via buildPrompt(). No need to duplicate instructions.
     const finalPanels = [...initialPanels]
 
     for (let i = 0; i < scriptPanels.length; i++) {
       try {
         const session = await getSession()
-        const imagePrompt =
-          `${scriptPanels[i].scene}. ` +
-          `Flat vector illustration, vibrant warm colors, educational comic panel style, ` +
-          `safe for ${grade || 'K-12'} students, diverse characters, ` +
-          `NO text or letters anywhere in the image, white background, clean lines.`
 
+        // Keep prompt SHORT — scene description only. generate-image adds
+        // "Flat vector illustration, no text, safe for school" automatically.
         const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-image`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
           body: JSON.stringify({
-            prompt: imagePrompt,
+            prompt: scriptPanels[i].scene,
             context: { topic: topic || 'lesson', grade: grade || 'K-12' },
-            aspectRatio: '4:3',
           }),
         })
         const imgData = await res.json()
@@ -164,10 +162,16 @@ export function useVerseComic({
             ...finalPanels[i],
             imageUrl: `data:${imgData.mimeType || 'image/png'};base64,${imgData.imageBase64}`,
           }
-          setPanels([...finalPanels])  // update UI after each image
+          setPanels([...finalPanels])  // update UI — image appears immediately
+        } else {
+          console.error(`Panel ${i} image generation failed:`, imgData.error || imgData.detail || 'Unknown error')
+          finalPanels[i] = { ...finalPanels[i], imageUrl: 'error' }
+          setPanels([...finalPanels])
         }
-      } catch {
-        // Panel stays with imageUrl: null — 🖼 placeholder shown
+      } catch (e) {
+        console.error(`Panel ${i} image fetch error:`, e)
+        finalPanels[i] = { ...finalPanels[i], imageUrl: 'error' }
+        setPanels([...finalPanels])
       }
     }
 
@@ -205,7 +209,9 @@ export function useVerseComic({
     generate()
   }
 
-  const hasContent = type === 'questions' ? !!questions : panels?.some(p => p.imageUrl)
+  const hasContent = type === 'questions'
+    ? !!questions
+    : panels?.some(p => p.imageUrl && p.imageUrl !== 'error')
 
   return { panels, questions, loading, error, cached, hasContent, generate, regenerate }
 }

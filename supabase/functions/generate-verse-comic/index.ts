@@ -57,24 +57,32 @@ async function buildComicScript(
       max_tokens: 700,
       messages: [{
         role:    'user',
-        content: `Create a 3-panel educational comic strip script for a ${grade} ${subject} class.
+        content: `Create a 3-panel educational illustration script for a ${grade} ${subject} class.
 
 Biblical verse: "${verseText}" — ${verseRef}
 Lesson topic: "${topic}"
 
-The comic should visually narrate the verse as a brief story (no abstract symbols).
-Panel 1 — SETUP: A scene that establishes the world or the character's situation before the truth of the verse.
-Panel 2 — TENSION: The character faces a challenge, choice, or temptation relevant to the verse.
-Panel 3 — TRUTH: The verse's principle is lived out — the transformed outcome, the blessing, the right choice made.
+Each panel illustrates a POSITIVE scene related to the verse (no conflict, no danger).
+Panel 1 — A happy classroom or community scene related to the verse theme.
+Panel 2 — Students or children actively practicing the verse value (helping, learning, sharing, etc).
+Panel 3 — A joyful outcome showing the blessing of living the verse.
 
-Rules for scenes: flat illustration style, diverse K-12 students, real-world classroom or community settings, NO text or letters visible in image.
-Captions: short English phrase (max 8 words), present tense, narrative voice.
+IMPORTANT rules for scene descriptions:
+- Describe ONLY what is VISIBLE: people, objects, colors, setting, actions.
+- Example: "Three smiling children sitting at a desk sharing school supplies, bright classroom, sunny window"
+- NO abstract concepts, NO emotions described, NO narrative language.
+- NO words like: temptation, challenge, struggle, conflict, darkness, sin, fear.
+- Characters: diverse happy students, teachers, families.
+- Settings: classroom, playground, park, church, home.
+- Keep each scene description under 30 words.
+
+Captions: short English phrase (max 8 words), present tense.
 
 Respond ONLY with valid JSON:
 {
-  "theme": "one-word English theme from the verse",
+  "theme": "one-word English theme",
   "panels": [
-    { "scene": "detailed image generation prompt", "caption": "short caption" },
+    { "scene": "visible objects and people description only", "caption": "short caption" },
     { "scene": "...", "caption": "..." },
     { "scene": "...", "caption": "..." }
   ]
