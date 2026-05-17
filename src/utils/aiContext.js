@@ -20,11 +20,19 @@ export function buildAIContext({ assignment, plan, dayContent, classroomData, mo
     || plan?.content?.objetivo?.principio
     || null
 
-  // Summarize what's already in this section (so AI complements, not duplicates)
+  // Extract section content for the current moment
   const sectionContent = dayContent?.sections?.[moment?.section] || null
   const hasPlannedContent = sectionContent?.content && sectionContent.content !== '<p></p>'
   const hasBlocks = sectionContent?.blocks?.length > 0
   const hasSmartBlocks = sectionContent?.smartBlocks?.length > 0
+
+  // Plain text of the section — strip HTML tags, collapse whitespace, cap at 500 chars
+  const sectionText = (sectionContent?.content || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&[a-z]+;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 500)
 
   return {
     grade: assignment?.grade || '',
@@ -36,6 +44,7 @@ export function buildAIContext({ assignment, plan, dayContent, classroomData, mo
     biblicalPrinciple,
     momentId: moment?.id,
     momentLabel: moment?.label,
+    sectionText,
     weekNumber: plan?.week_number,
     date: todayKey,
     hasPlannedContent,

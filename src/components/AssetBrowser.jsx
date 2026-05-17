@@ -29,16 +29,28 @@ export default function AssetBrowser({
   const accentColor = moment?.color || 'var(--accent)'
 
   // ── AI image prompts — built from class context, zero typing ──────────────
-  const topic = context.topic || 'the current lesson'
-  const grade = context.grade || 'K-12'
+  const topic      = context.topic       || 'the current lesson'
+  const grade      = context.grade       || 'K-12'
+  const sectionText = context.sectionText || ''
+  const objective  = context.objective   || ''
+
+  // "Ilustrar la actividad" — uses the actual section text so the image matches
+  // what's happening in THIS moment, not just the general topic
+  const activityPrompt = sectionText
+    ? `Flat educational illustration for a ${grade} classroom. Topic: "${topic}". Activity: "${sectionText.slice(0, 300)}". Relevant visual scene, no text in image.`
+    : `Educational illustration of "${topic}" activity for ${grade} students`
+
+  const objectivePrompt = objective
+    ? `Flat educational illustration that represents this learning objective: "${objective.slice(0, 200)}". Topic: "${topic}", grade ${grade}. No text in image.`
+    : `Educational illustration of the learning objective for "${topic}", grade ${grade}`
 
   const AI_PROMPTS = [
-    { id: 'topic',     icon: '📚', label: `Ilustrar: ${topic}`,               prompt: `Educational illustration of "${topic}" for ${grade} students` },
-    { id: 'moment',    icon: '🎯', label: `Momento: ${moment?.label || ''}`,   prompt: `Classroom scene for "${moment?.label}" activity, ${grade} students engaged` },
-    { id: 'biblical',  icon: '✝',  label: 'Principio Bíblico',                 prompt: `Peaceful biblical illustration, faith and learning, children studying with light` },
-    { id: 'teamwork',  icon: '🤝', label: 'Trabajo en equipo',                 prompt: `Diverse ${grade} students collaborating in pairs, teamwork, classroom setting` },
-    { id: 'celebrate', icon: '⭐', label: 'Celebrar logro',                    prompt: `Children celebrating academic achievement, stars, joy, school success, ${grade}` },
-    { id: 'focus',     icon: '🧠', label: 'Concentración',                     prompt: `Student thinking deeply, lightbulb, concentration, learning, ${grade} classroom` },
+    { id: 'activity',  icon: '🎯', label: `Actividad: ${moment?.label || topic}`, prompt: activityPrompt },
+    { id: 'topic',     icon: '📚', label: `Tema: ${topic}`,                        prompt: `Flat vector educational illustration of "${topic}" concept for ${grade} students. Clear, simple, no text.` },
+    { id: 'objective', icon: '🏆', label: 'Objetivo de la clase',                  prompt: objectivePrompt },
+    { id: 'biblical',  icon: '✝',  label: 'Principio Bíblico',                     prompt: `Peaceful biblical illustration connecting faith and learning. Topic: "${topic}". Warm colors, hopeful, no text.` },
+    { id: 'teamwork',  icon: '🤝', label: 'Trabajo en equipo',                     prompt: `Diverse ${grade} students collaborating in groups, working on a project together, teamwork, classroom setting, flat illustration.` },
+    { id: 'celebrate', icon: '⭐', label: 'Celebrar logro',                        prompt: `Children celebrating academic achievement, stars, joy, school success, ${grade}, flat illustration.` },
   ]
 
   const ASPECT_OPTIONS = [
