@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import TopBar from './TopBar'
+import PersistentHeader from './PersistentHeader'
+import LeftSidebar from './LeftSidebar'
 import MomentCanvas from './MomentCanvas'
-import BoardStrip from './BoardStrip'
 import ToolsPanel from './ToolsPanel'
 import Whiteboard from './Whiteboard'
 import AIPanel from './AIPanel'
@@ -21,8 +21,12 @@ const MOMENTS = [
 ]
 
 export default function ClassroomFrame({ teacher, resolved, classroomData, onChangeClass, onSignOut }) {
+  const FONT_STEPS = [1, 1.18, 1.38, 1.6]
+  const [fontStep, setFontStep] = useState(0)
+
   const [activeMoment, setActiveMoment] = useState(0)
   const [m3SubStep, setM3SubStep] = useState(0) // 0 = WBT rules, 1 = section content
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [toolsOpen, setToolsOpen] = useState(false)
   const [whiteboardOpen, setWhiteboardOpen] = useState(false)
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
@@ -121,27 +125,31 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     if (e.key === 'F11') { e.preventDefault(); toggleFullscreen() }
   }
 
-  const boardProps = {
-    todayKey,
-    dayContent,
-    plan,
-    classroomData,
-    subject: assignment?.subject,
-    combinedGrade,
-  }
-
   return (
-    <div className="cc-frame" tabIndex={0} onKeyDown={handleKey} style={{ outline: 'none' }}>
-      <TopBar
-        teacher={teacher}
-        assignment={assignment}
+    <div className="cc-frame" tabIndex={0} onKeyDown={handleKey} style={{ outline: 'none', '--font-scale': FONT_STEPS[fontStep] }}>
+
+      {/* ── ROW 1+2: Persistent Header (full width) ── */}
+      <PersistentHeader
+        todayKey={todayKey}
+        dayContent={dayContent}
         plan={plan}
-        onChangeClass={onChangeClass}
-        onSignOut={onSignOut}
-        onOpenTools={() => setToolsOpen(true)}
-        onOpenWhiteboard={() => setWhiteboardOpen(true)}
-        onOpenAI={() => { setAiPanelOpen(o => !o); setGamesPanelOpen(false) }}
-        onOpenGames={() => { setGamesPanelOpen(o => !o); setAiPanelOpen(false) }}
+        classroomData={classroomData}
+        subject={assignment?.subject}
+        combinedGrade={combinedGrade}
+        moment={moment}
+        onVerseSpotlight={handleVerseSpotlight}
+        t={t}
+      />
+
+      {/* ── ROW 3: Sidebar + Content ── */}
+      <LeftSidebar
+        moment={moment}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(o => !o)}
+        onOpenTools={() => { setToolsOpen(true); setSidebarOpen(false) }}
+        onOpenWhiteboard={() => { setWhiteboardOpen(true); setSidebarOpen(false) }}
+        onOpenAI={() => { setAiPanelOpen(o => !o); setGamesPanelOpen(false); setSidebarOpen(false) }}
+        onOpenGames={() => { setGamesPanelOpen(o => !o); setAiPanelOpen(false); setSidebarOpen(false) }}
         toolsOpen={toolsOpen}
         aiPanelOpen={aiPanelOpen}
         gamesPanelOpen={gamesPanelOpen}
@@ -149,47 +157,53 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
         onToggleSound={() => setSoundEnabled(s => !s)}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
+        onChangeClass={onChangeClass}
+        onSignOut={onSignOut}
+        fontStep={fontStep}
+        fontStepMax={FONT_STEPS.length - 1}
+        onFontIncrease={() => setFontStep(s => Math.min(s + 1, FONT_STEPS.length - 1))}
+        onFontDecrease={() => setFontStep(s => Math.max(s - 1, 0))}
         t={t}
       />
 
-      <BoardStrip {...boardProps} t={t} />
-
-      {toolsOpen ? (
-        <ToolsPanel onClose={() => setToolsOpen(false)} />
-      ) : isSpecialDay ? (
-        <SpecialDayCanvas
-          classStatus={classStatus}
-          statusReason={dayContent?.status_reason}
-          todayKey={todayKey}
-          plan={plan}
-          assignment={assignment}
-          combinedGrade={combinedGrade}
-        />
-      ) : (
-        <MomentCanvas
-          moment={moment}
-          sectionContent={sectionContent}
-          plan={plan}
-          dayContent={dayContent}
-          classroomData={classroomData}
-          todayKey={todayKey}
-          combinedGrade={combinedGrade}
-          subject={assignment?.subject}
-          onNext={goNext}
-          onPrev={goPrev}
-          isFirst={activeMoment === 0}
-          isLast={activeMoment === MOMENTS.length - 1}
-          m3SubStep={m3SubStep}
-          aiOverlay={aiOverlay}
-          onDismissAI={() => setAiOverlay(null)}
-          videoOverlay={videoOverlay}
-          onDismissVideo={() => setVideoOverlay(null)}
-          transitionKey={transitionKey}
-          transitionDir={transitionDir}
-          onVerseSpotlight={handleVerseSpotlight}
-          t={t}
-        />
-      )}
+      <div className="cc-content-area">
+        {toolsOpen ? (
+          <ToolsPanel onClose={() => setToolsOpen(false)} />
+        ) : isSpecialDay ? (
+          <SpecialDayCanvas
+            classStatus={classStatus}
+            statusReason={dayContent?.status_reason}
+            todayKey={todayKey}
+            plan={plan}
+            assignment={assignment}
+            combinedGrade={combinedGrade}
+          />
+        ) : (
+          <MomentCanvas
+            moment={moment}
+            sectionContent={sectionContent}
+            plan={plan}
+            dayContent={dayContent}
+            classroomData={classroomData}
+            todayKey={todayKey}
+            combinedGrade={combinedGrade}
+            subject={assignment?.subject}
+            onNext={goNext}
+            onPrev={goPrev}
+            isFirst={activeMoment === 0}
+            isLast={activeMoment === MOMENTS.length - 1}
+            m3SubStep={m3SubStep}
+            aiOverlay={aiOverlay}
+            onDismissAI={() => setAiOverlay(null)}
+            videoOverlay={videoOverlay}
+            onDismissVideo={() => setVideoOverlay(null)}
+            transitionKey={transitionKey}
+            transitionDir={transitionDir}
+            onVerseSpotlight={handleVerseSpotlight}
+            t={t}
+          />
+        )}
+      </div>
 
       {aiPanelOpen && (
         <AIPanel
