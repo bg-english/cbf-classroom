@@ -101,7 +101,8 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     combinedGrade,
   }
 
-  // ABC: el tablero NUNCA se borra durante la clase — siempre visible
+  // NON-NEGOTIABLE: Board (Date · Topic · Objective · Biblical Principle) is ALWAYS visible.
+  // It NEVER disappears during the class — this is the anchor of the biblical verse thread.
   const showBoardStrip = true
 
   return (

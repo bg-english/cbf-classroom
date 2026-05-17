@@ -1,14 +1,14 @@
 /**
  * BoardStrip — persistent compact bar showing class essentials.
  *
- * ABC del encuentro académico: "Escribe lo siguiente en el tablero
- * (no borrar durante la clase)":
- *   1. Fecha
- *   2. El tema a desarrollar
- *   3. Objetivo de la lección
- *   4. Principio bíblico
+ * Board ritual (NEVER erased during class):
+ *   1. Date
+ *   2. Subject to be worked (topic)
+ *   3. Lesson objective
+ *   4. Biblical principle of the indicator
  *
- * Always visible in moments 2-6 and tools mode.
+ * Always visible in ALL moments and tools mode.
+ * The biblical verse permeates the entire session — this bar is its anchor.
  * Never disappears during the class session.
  */
 export default function BoardStrip({ todayKey, dayContent, plan, classroomData, subject, combinedGrade }) {
@@ -37,35 +37,35 @@ export default function BoardStrip({ todayKey, dayContent, plan, classroomData, 
 
   return (
     <div className="bs-strip">
-      {/* 1. FECHA */}
+      {/* 1. DATE */}
       <div className="bs-item bs-date">
-        <span className="bs-label">Fecha</span>
+        <span className="bs-label">Date</span>
         <span className="bs-value">{dateLabel}</span>
       </div>
 
       <div className="bs-divider" />
 
-      {/* 2. TEMA A DESARROLLAR */}
+      {/* 2. SUBJECT TO BE WORKED */}
       <div className="bs-item bs-topic">
-        <span className="bs-label">Tema</span>
-        <span className="bs-value">{dayUnit || 'Sin tema asignado'}</span>
+        <span className="bs-label">Topic</span>
+        <span className="bs-value">{dayUnit || 'No topic assigned'}</span>
       </div>
 
       <div className="bs-divider" />
 
-      {/* 3. OBJETIVO DE LA LECCIÓN */}
+      {/* 3. LESSON OBJECTIVE */}
       <div className="bs-item bs-objective">
-        <span className="bs-label">Objetivo</span>
-        <span className="bs-value">{objectiveText || 'Sin objetivo asignado'}</span>
+        <span className="bs-label">Objective</span>
+        <span className="bs-value">{objectiveText || 'No objective assigned'}</span>
       </div>
 
       <div className="bs-divider" />
 
-      {/* 4. PRINCIPIO BÍBLICO */}
+      {/* 4. BIBLICAL PRINCIPLE OF THE INDICATOR */}
       <div className="bs-item bs-principle">
-        <span className="bs-label"><span className="bs-icon">✝</span> Principio Bíblico</span>
+        <span className="bs-label"><span className="bs-icon">✝</span> Biblical Principle</span>
         <span className="bs-value bs-verse-text">
-          {principio || 'Sin principio asignado'}
+          {principio || 'No principle assigned'}
           {verseRef && <span className="bs-ref"> — {verseRef}</span>}
         </span>
       </div>
