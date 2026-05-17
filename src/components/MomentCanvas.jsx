@@ -9,7 +9,10 @@ export default function MomentCanvas({
   moment, sectionContent, plan, dayContent, classroomData,
   todayKey, combinedGrade, subject,
   onNext, onPrev, isFirst, isLast, m3SubStep,
-  aiOverlay, onDismissAI, videoOverlay, onDismissVideo, t
+  aiOverlay, onDismissAI, videoOverlay, onDismissVideo,
+  transitionKey, transitionDir,
+  onVerseSpotlight,
+  t
 }) {
   const biblicalPrinciple = classroomData?.biblicalPrinciple
     || plan?.content?.objetivo?.principio
@@ -21,8 +24,11 @@ export default function MomentCanvas({
       {/* Minimal accent bar — moment color only */}
       <div className="cc-canvas-accent" style={{ background: moment.color }} />
 
-      {/* Content area */}
-      <div className="cc-canvas-content">
+      {/* Content area — keyed for transition animation */}
+      <div
+        key={transitionKey}
+        className={`cc-canvas-content cc-anim-${transitionDir || 'next'}`}
+      >
         {moment.id === 1 ? (
           <AperturaDevocional
             classroomData={classroomData}
@@ -32,6 +38,7 @@ export default function MomentCanvas({
             combinedGrade={combinedGrade}
             subject={subject}
             t={t}
+            onVerseSpotlight={onVerseSpotlight}
           />
         ) : moment.id === 2 ? (
           <M2TemaDia
@@ -44,6 +51,7 @@ export default function MomentCanvas({
             classroomData={classroomData}
             sectionContent={sectionContent}
             t={t}
+            onVerseSpotlight={onVerseSpotlight}
           />
         ) : moment.id === 3 && m3SubStep === 0 ? (
           <WBTRules t={t} />
@@ -57,10 +65,20 @@ export default function MomentCanvas({
               t={t}
             />
             {moment.id === 4 && biblicalPrinciple && (
-              <BiblicalMidCard principle={biblicalPrinciple} classroomData={classroomData} t={t} />
+              <BiblicalMidCard
+                principle={biblicalPrinciple}
+                classroomData={classroomData}
+                t={t}
+                onTap={() => onVerseSpotlight?.({ text: biblicalPrinciple, ref: classroomData?.indicatorVerseRef, label: t.bibPrincipleMonth })}
+              />
             )}
-            {moment.id === 5 && biblicalPrinciple && (
-              <BiblicalCloseCard principle={biblicalPrinciple} classroomData={classroomData} t={t} />
+            {moment.id === 6 && biblicalPrinciple && (
+              <BiblicalCloseCard
+                principle={biblicalPrinciple}
+                classroomData={classroomData}
+                t={t}
+                onTap={() => onVerseSpotlight?.({ text: biblicalPrinciple, ref: classroomData?.indicatorVerseRef, label: t.bibClosingReflection })}
+              />
             )}
           </>
         )}
@@ -406,7 +424,7 @@ function MediaVideo({ video }) {
 }
 
 /** M2TemaDia — Momento 2: board ritual (date · topic · objective · principle). */
-function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject, classroomData, sectionContent, t }) {
+function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject, classroomData, sectionContent, t, onVerseSpotlight }) {
   const dateLabel = todayKey
     ? new Date(todayKey + 'T12:00:00').toLocaleDateString('es-CO', {
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
@@ -446,8 +464,12 @@ function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject,
             <span className="m2-value m2-value-indicator">{objectiveText || t.noObjectiveAssigned}</span>
           </div>
           {principio && (
-            <div className="m2-field m2-full m2-field-principle">
-              <span className="m2-label">{t.biblicalPrinciple}</span>
+            <div
+              className="m2-field m2-full m2-field-principle m2-principle-tappable"
+              onClick={() => onVerseSpotlight?.({ text: principio, label: t.biblicalPrinciple })}
+              role="button" tabIndex={0}
+            >
+              <span className="m2-label">{t.biblicalPrinciple} <span className="m2-tap-hint">↗</span></span>
               <span className="m2-value">{principio}</span>
             </div>
           )}
@@ -488,9 +510,9 @@ function WBTRules({ t }) {
 }
 
 /** BiblicalMidCard — verse connection (Momento 4). */
-function BiblicalMidCard({ principle, classroomData, t }) {
+function BiblicalMidCard({ principle, classroomData, t, onTap }) {
   return (
-    <div className="bib-card bib-card-mid">
+    <div className="bib-card bib-card-mid bib-card-tappable" onClick={onTap} role="button" tabIndex={0}>
       <div className="bib-card-badge">
         <span>✝</span> {t.bibPrincipleMonth}
       </div>
@@ -501,14 +523,15 @@ function BiblicalMidCard({ principle, classroomData, t }) {
       {classroomData?.biblicalReflection && (
         <div className="bib-card-reflection">💬 {classroomData.biblicalReflection}</div>
       )}
+      <div className="bib-card-tap-hint">↗ Toca para ampliar</div>
     </div>
   )
 }
 
 /** BiblicalCloseCard — verse reflection (Momento 6). */
-function BiblicalCloseCard({ principle, classroomData, t }) {
+function BiblicalCloseCard({ principle, classroomData, t, onTap }) {
   return (
-    <div className="bib-card bib-card-close">
+    <div className="bib-card bib-card-close bib-card-tappable" onClick={onTap} role="button" tabIndex={0}>
       <div className="bib-card-badge">
         <span>✝</span> {t.bibClosingReflection}
       </div>
@@ -519,6 +542,7 @@ function BiblicalCloseCard({ principle, classroomData, t }) {
       {classroomData?.indicatorVerseRef && (
         <cite className="bib-card-ref">{classroomData.indicatorVerseRef}</cite>
       )}
+      <div className="bib-card-tap-hint">↗ Toca para ampliar</div>
     </div>
   )
 }

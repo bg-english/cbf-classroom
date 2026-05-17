@@ -6,6 +6,8 @@ import ToolsPanel from './ToolsPanel'
 import Whiteboard from './Whiteboard'
 import AIPanel from './AIPanel'
 import GamesPanel from './GamesPanel'
+import VerseSpotlight from './VerseSpotlight'
+import { playNext, playPrev, playVerse } from '../utils/sounds'
 import { getLocale, isEnglishSubject } from '../utils/locale'
 
 /* CBF Didactic Session — 6 moments */
@@ -27,6 +29,10 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   const [gamesPanelOpen, setGamesPanelOpen] = useState(false)
   const [aiOverlay, setAiOverlay] = useState(null)
   const [videoOverlay, setVideoOverlay] = useState(null)
+  const [verseSpotlight, setVerseSpotlight] = useState(null)
+  const [soundEnabled, setSoundEnabled] = useState(true)
+  const [transitionDir, setTransitionDir] = useState('next')
+  const [transitionKey, setTransitionKey] = useState(0)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   const { assignment, plan, todayKey, dayContent, combinedGrade } = resolved
@@ -77,8 +83,11 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     }
   }, [requestFullscreen])
 
-  // Navigation with M3 sub-step support
+  // Navigation with M3 sub-step support + transitions + sounds
   function goNext() {
+    setTransitionDir('next')
+    setTransitionKey(k => k + 1)
+    if (soundEnabled) playNext(activeMoment)
     if (activeMoment === 2 && m3SubStep === 0) {
       setM3SubStep(1)
     } else {
@@ -86,6 +95,9 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     }
   }
   function goPrev() {
+    setTransitionDir('prev')
+    setTransitionKey(k => k + 1)
+    if (soundEnabled) playPrev()
     if (activeMoment === 2 && m3SubStep === 1) {
       setM3SubStep(0)
     } else {
@@ -93,12 +105,18 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     }
   }
 
+  function handleVerseSpotlight(verse) {
+    setVerseSpotlight(verse)
+    if (soundEnabled) playVerse()
+  }
+
   function handleKey(e) {
     if (toolsOpen || aiPanelOpen || gamesPanelOpen) return
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goNext() }
     if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev() }
     if (e.key >= '1' && e.key <= '6') setActiveMoment(Number(e.key) - 1)
-    if (e.key === 'Escape') { setToolsOpen(false); setAiPanelOpen(false); setGamesPanelOpen(false); setAiOverlay(null); setVideoOverlay(null) }
+    if (e.key === 'Escape') { setToolsOpen(false); setAiPanelOpen(false); setGamesPanelOpen(false); setAiOverlay(null); setVideoOverlay(null); setVerseSpotlight(null) }
+    if (e.key === 'm' || e.key === 'M') setSoundEnabled(s => !s)
     if (e.key === 'a' || e.key === 'A') { e.preventDefault(); setAiPanelOpen(o => !o) }
     if (e.key === 'F11') { e.preventDefault(); toggleFullscreen() }
   }
@@ -127,6 +145,8 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
         toolsOpen={toolsOpen}
         aiPanelOpen={aiPanelOpen}
         gamesPanelOpen={gamesPanelOpen}
+        soundEnabled={soundEnabled}
+        onToggleSound={() => setSoundEnabled(s => !s)}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
         t={t}
@@ -164,6 +184,9 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
           onDismissAI={() => setAiOverlay(null)}
           videoOverlay={videoOverlay}
           onDismissVideo={() => setVideoOverlay(null)}
+          transitionKey={transitionKey}
+          transitionDir={transitionDir}
+          onVerseSpotlight={handleVerseSpotlight}
           t={t}
         />
       )}
@@ -191,6 +214,10 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
           isEn={isEnglishSubject(assignment?.subject)}
           onClose={() => setGamesPanelOpen(false)}
         />
+      )}
+
+      {verseSpotlight && (
+        <VerseSpotlight verse={verseSpotlight} onClose={() => setVerseSpotlight(null)} />
       )}
 
       {whiteboardOpen && <Whiteboard onClose={() => setWhiteboardOpen(false)} />}

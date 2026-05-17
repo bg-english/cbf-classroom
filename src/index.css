@@ -122,6 +122,237 @@ a { color: var(--accent); text-decoration: none; }
 }
 
 /* =========================================================
+   MOMENT TRANSITIONS
+   ========================================================= */
+
+.cc-anim-next {
+  animation: momentSlideNext 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+.cc-anim-prev {
+  animation: momentSlidePrev 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes momentSlideNext {
+  from { opacity: 0; transform: translateX(28px) scale(0.99); }
+  to   { opacity: 1; transform: translateX(0)    scale(1); }
+}
+@keyframes momentSlidePrev {
+  from { opacity: 0; transform: translateX(-28px) scale(0.99); }
+  to   { opacity: 1; transform: translateX(0)     scale(1); }
+}
+
+/* =========================================================
+   VERSE SPOTLIGHT — full-screen cinematic overlay
+   ========================================================= */
+
+.vs-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: vsFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes vsFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Subtle grain texture for depth */
+.vs-texture {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* Vignette — darkens edges for cinematic feel */
+.vs-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.45) 100%);
+  pointer-events: none;
+}
+
+.vs-content {
+  position: relative;
+  z-index: 1;
+  max-width: clamp(500px, 68vw, 1100px);
+  text-align: center;
+  padding: clamp(24px, 4vw, 60px);
+  cursor: default;
+  animation: vsSlideUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+@keyframes vsSlideUp {
+  from { opacity: 0; transform: translateY(36px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+.vs-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.85);
+  font-size: clamp(0.7rem, 1vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 16px;
+  border-radius: 99px;
+  margin-bottom: clamp(20px, 3vh, 36px);
+  backdrop-filter: blur(6px);
+}
+
+.vs-ornament {
+  margin-bottom: clamp(20px, 3vh, 40px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.vs-ornament-emoji {
+  font-size: clamp(2.5rem, 5vw, 5rem);
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.35));
+  display: block;
+}
+.vs-ornament-line {
+  width: clamp(40px, 6vw, 80px);
+  height: 2px;
+  background: rgba(255,255,255,0.35);
+  border-radius: 1px;
+}
+
+.vs-text {
+  font-size: clamp(1.5rem, 3.2vw, 3.8rem);
+  font-weight: 300;
+  color: #ffffff;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
+  quotes: none;
+  margin: 0 0 clamp(20px, 3vh, 36px);
+  font-style: italic;
+}
+.vs-text strong { font-weight: 600; font-style: normal; }
+
+.vs-ref {
+  display: block;
+  font-size: clamp(0.9rem, 1.6vw, 1.6rem);
+  font-weight: 600;
+  font-style: normal;
+  color: rgba(255,255,255,0.8);
+  text-shadow: 0 1px 8px rgba(0,0,0,0.3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vs-label {
+  margin-top: 10px;
+  font-size: clamp(0.7rem, 1vw, 0.9rem);
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.vs-close {
+  position: fixed;
+  top: clamp(16px, 2.5vh, 28px);
+  right: clamp(16px, 2vw, 28px);
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  backdrop-filter: blur(8px);
+  color: rgba(255,255,255,0.85);
+  width: clamp(40px, 4vw, 52px);
+  height: clamp(40px, 4vw, 52px);
+  min-height: auto;
+  min-width: auto;
+  border-radius: 50%;
+  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.15s;
+}
+.vs-close:active { background: rgba(255,255,255,0.25); }
+
+.vs-hint {
+  position: fixed;
+  bottom: clamp(14px, 2.5vh, 24px);
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255,255,255,0.35);
+  font-size: clamp(0.65rem, 0.9vw, 0.8rem);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  pointer-events: none;
+  animation: vsHintFade 2s ease 1.5s both;
+}
+@keyframes vsHintFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* =========================================================
+   TAPPABLE VERSE CARDS
+   ========================================================= */
+
+.ap-verse-tappable {
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.ap-verse-tappable:active {
+  transform: scale(0.985);
+}
+.ap-verse-tap-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  letter-spacing: 0.04em;
+}
+.ap-verse-tappable:hover .ap-verse-tap-hint {
+  opacity: 1;
+}
+
+.bib-card-tappable {
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+.bib-card-tappable:active {
+  transform: scale(0.985);
+}
+.bib-card-tap-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  letter-spacing: 0.04em;
+}
+.bib-card-tappable:hover .bib-card-tap-hint { opacity: 1; }
+
+.m2-principle-tappable {
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 8px;
+}
+.m2-principle-tappable:active { opacity: 0.8; }
+.m2-tap-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+/* =========================================================
    LOADING SCREEN
    ========================================================= */
 .cc-loading-screen {

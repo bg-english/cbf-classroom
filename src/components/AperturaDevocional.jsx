@@ -1,34 +1,24 @@
 /**
  * AperturaDevocional — Momento 1
- *
- * Implementa el ABC del encuentro académico Boston Flex:
- * 1. Saludo + Principio Bíblico
- * 2. Tablero: Fecha · Tema · Objetivo · Principio Bíblico · Reglas
- * 3. Versículo del Año + Versículo del Mes
- *
- * Datos desde: schools.year_verse · school_monthly_principles · news_projects
+ * Verses are now tappable → VerseSpotlight full-screen modal.
  */
-export default function AperturaDevocional({ classroomData, plan, dayContent, todayKey, combinedGrade, subject, t }) {
-  const objetivo = plan?.content?.objetivo || {}
+export default function AperturaDevocional({
+  classroomData, plan, dayContent, todayKey,
+  combinedGrade, subject, t, onVerseSpotlight
+}) {
+  const objetivo    = plan?.content?.objetivo || {}
   const indicadores = objetivo.indicadores || []
-  const principio = objetivo.principio || null
-  const guideVerse = plan?.content?.verse || null
+  const principio   = objetivo.principio || null
+  const guideVerse  = plan?.content?.verse || null
 
-  const dateLabel = todayKey
-    ? new Date(todayKey + 'T12:00:00').toLocaleDateString('es-CO', {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-      })
-    : ''
-
-  // Get topic from dayContent
   const dayUnit = dayContent?.sections?.subject?.content
     ? stripHtml(dayContent.sections.subject.content).slice(0, 120)
     : (dayContent?.unit || subject || '')
 
-  // Get first indicator text
-  const firstIndicator = Array.isArray(indicadores) && indicadores.length > 0
-    ? (typeof indicadores[0] === 'string' ? indicadores[0] : indicadores[0]?.habilidad || indicadores[0]?.texto_en || '')
-    : (objetivo.general || '')
+  function spotlight(text, ref, label, html) {
+    if (!text && !html) return
+    onVerseSpotlight?.({ text, ref, label, html })
+  }
 
   return (
     <div className="ap-container">
@@ -36,75 +26,68 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
       {/* ── VERSÍCULOS ── */}
       <div className="ap-verses">
 
-        {/* Versículo del Año */}
         {classroomData?.yearVerse && (
-          <div className="ap-verse ap-verse-year">
-            <div className="ap-verse-badge">{t.verseYear}</div>
-            <blockquote
-              className="ap-verse-text"
-              dangerouslySetInnerHTML={{ __html: classroomData.yearVerse }}
-            />
-            {classroomData.yearVerseRef && (
-              <cite className="ap-verse-ref">{classroomData.yearVerseRef}</cite>
+          <VerseCard
+            badge={t.verseYear}
+            html={classroomData.yearVerse}
+            ref_={classroomData.yearVerseRef}
+            onTap={() => spotlight(
+              stripHtml(classroomData.yearVerse),
+              classroomData.yearVerseRef,
+              t.verseYear,
+              classroomData.yearVerse
             )}
-          </div>
+          />
         )}
 
-        {/* Versículo del Mes */}
         {classroomData?.monthVerse && (
-          <div className="ap-verse ap-verse-month">
-            <div className="ap-verse-badge">{t.verseMonth}</div>
-            <blockquote
-              className="ap-verse-text"
-              dangerouslySetInnerHTML={{ __html: classroomData.monthVerse }}
-            />
-            {classroomData.monthVerseRef && (
-              <cite className="ap-verse-ref">{classroomData.monthVerseRef}</cite>
+          <VerseCard
+            badge={t.verseMonth}
+            html={classroomData.monthVerse}
+            ref_={classroomData.monthVerseRef}
+            onTap={() => spotlight(
+              stripHtml(classroomData.monthVerse),
+              classroomData.monthVerseRef,
+              t.verseMonth,
+              classroomData.monthVerse
             )}
-          </div>
+          />
         )}
 
-        {/* Versículo de la Guía Semanal */}
         {guideVerse?.text && (
-          <div className="ap-verse ap-verse-guide">
-            <div className="ap-verse-badge">{t.verseGuide}</div>
-            <blockquote className="ap-verse-text">{guideVerse.text}</blockquote>
-            {guideVerse.ref && (
-              <cite className="ap-verse-ref">{guideVerse.ref}</cite>
-            )}
-          </div>
+          <VerseCard
+            badge={t.verseGuide}
+            text={guideVerse.text}
+            ref_={guideVerse.ref}
+            onTap={() => spotlight(guideVerse.text, guideVerse.ref, t.verseGuide)}
+          />
         )}
 
-        {/* Principio Bíblico del Indicador */}
         {classroomData?.biblicalPrinciple && (
-          <div className="ap-verse ap-verse-indicator">
-            <div className="ap-verse-badge">{t.principleIndicator}</div>
-            {classroomData.newsProjectTitle && (
-              <div className="ap-verse-project">{t.project}: {classroomData.newsProjectTitle}</div>
+          <VerseCard
+            badge={t.principleIndicator}
+            project={classroomData.newsProjectTitle ? `${t.project}: ${classroomData.newsProjectTitle}` : null}
+            text={classroomData.biblicalPrinciple}
+            ref_={classroomData.indicatorVerseRef}
+            reflection={classroomData.biblicalReflection
+              ? `💬 ${t.reflection} ${classroomData.biblicalReflection}`
+              : null}
+            onTap={() => spotlight(
+              classroomData.biblicalPrinciple,
+              classroomData.indicatorVerseRef,
+              t.principleIndicator
             )}
-            <blockquote className="ap-verse-text">
-              {classroomData.biblicalPrinciple}
-            </blockquote>
-            {classroomData.indicatorVerseRef && (
-              <cite className="ap-verse-ref">{classroomData.indicatorVerseRef}</cite>
-            )}
-            {classroomData.biblicalReflection && (
-              <div className="ap-verse-reflection">
-                <span>💬 {t.reflection}</span> {classroomData.biblicalReflection}
-              </div>
-            )}
-          </div>
+          />
         )}
 
-        {/* Principio del plan (fallback) */}
         {!classroomData?.biblicalPrinciple && principio && (
-          <div className="ap-verse ap-verse-indicator">
-            <div className="ap-verse-badge">{t.principleIndicator}</div>
-            <blockquote className="ap-verse-text">{principio}</blockquote>
-          </div>
+          <VerseCard
+            badge={t.principleIndicator}
+            text={principio}
+            onTap={() => spotlight(principio, null, t.principleIndicator)}
+          />
         )}
 
-        {/* Fallback — sin datos configurados */}
         {!classroomData?.yearVerse && !classroomData?.monthVerse && !guideVerse?.text && !classroomData?.biblicalPrinciple && !principio && (
           <div className="ap-empty-verses">
             <div className="ap-empty-icon">✝</div>
@@ -113,7 +96,7 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
         )}
       </div>
 
-      {/* ── VOCABULARY LIST (contenido del encuentro) ── */}
+      {/* ── VOCABULARY LIST ── */}
       {dayContent?.sections?.subject?.content &&
        dayContent.sections.subject.content !== '<p></p>' && (
         <div className="ap-section-content">
@@ -124,6 +107,23 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
           />
         </div>
       )}
+    </div>
+  )
+}
+
+/** VerseCard — tappable verse block with spotlight hint */
+function VerseCard({ badge, text, html, ref_, project, reflection, onTap }) {
+  return (
+    <div className="ap-verse ap-verse-tappable" onClick={onTap} role="button" tabIndex={0}>
+      <div className="ap-verse-badge">{badge}</div>
+      {project && <div className="ap-verse-project">{project}</div>}
+      {html
+        ? <blockquote className="ap-verse-text" dangerouslySetInnerHTML={{ __html: html }} />
+        : <blockquote className="ap-verse-text">{text}</blockquote>
+      }
+      {ref_ && <cite className="ap-verse-ref">{ref_}</cite>}
+      {reflection && <div className="ap-verse-reflection">{reflection}</div>}
+      <div className="ap-verse-tap-hint">↗ Toca para ampliar</div>
     </div>
   )
 }

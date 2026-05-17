@@ -8,7 +8,8 @@ import { getCurrentPeriod, getPeriodProgress } from '../utils/periodUtils'
 export default function TopBar({
   teacher, assignment, plan,
   onChangeClass, onSignOut, onOpenTools, onOpenWhiteboard, onOpenAI, onOpenGames,
-  toolsOpen, aiPanelOpen, gamesPanelOpen, isFullscreen, onToggleFullscreen, t
+  toolsOpen, aiPanelOpen, gamesPanelOpen, isFullscreen, onToggleFullscreen,
+  soundEnabled, onToggleSound, t
 }) {
   const [time, setTime] = useState(new Date())
   const [elapsed, setElapsed] = useState(0)
@@ -102,6 +103,9 @@ export default function TopBar({
               </button>
               <button onClick={() => { setMenuOpen(false); onOpenTools() }}>
                 🌐 {t.tools}
+              </button>
+              <button onClick={() => { setMenuOpen(false); onToggleSound?.() }}>
+                {soundEnabled ? '🔔 Sonido activo' : '🔕 Sonido silenciado'}
               </button>
               <button onClick={() => { setMenuOpen(false); onToggleFullscreen() }}>
                 {isFullscreen ? t.exitFullscreen : t.enterFullscreen}
