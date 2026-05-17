@@ -5,7 +5,8 @@ import BoardStrip from './BoardStrip'
 import ToolsPanel from './ToolsPanel'
 import Whiteboard from './Whiteboard'
 import AIPanel from './AIPanel'
-import { getLocale } from '../utils/locale'
+import GamesPanel from './GamesPanel'
+import { getLocale, isEnglishSubject } from '../utils/locale'
 
 /* CBF Didactic Session — 6 moments */
 const MOMENTS = [
@@ -23,6 +24,7 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   const [toolsOpen, setToolsOpen] = useState(false)
   const [whiteboardOpen, setWhiteboardOpen] = useState(false)
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
+  const [gamesPanelOpen, setGamesPanelOpen] = useState(false)
   const [aiOverlay, setAiOverlay] = useState(null)
   const [videoOverlay, setVideoOverlay] = useState(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -92,11 +94,11 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   }
 
   function handleKey(e) {
-    if (toolsOpen || aiPanelOpen) return
+    if (toolsOpen || aiPanelOpen || gamesPanelOpen) return
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goNext() }
     if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev() }
     if (e.key >= '1' && e.key <= '6') setActiveMoment(Number(e.key) - 1)
-    if (e.key === 'Escape') { setToolsOpen(false); setAiPanelOpen(false); setAiOverlay(null); setVideoOverlay(null) }
+    if (e.key === 'Escape') { setToolsOpen(false); setAiPanelOpen(false); setGamesPanelOpen(false); setAiOverlay(null); setVideoOverlay(null) }
     if (e.key === 'a' || e.key === 'A') { e.preventDefault(); setAiPanelOpen(o => !o) }
     if (e.key === 'F11') { e.preventDefault(); toggleFullscreen() }
   }
@@ -120,9 +122,11 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
         onSignOut={onSignOut}
         onOpenTools={() => setToolsOpen(true)}
         onOpenWhiteboard={() => setWhiteboardOpen(true)}
-        onOpenAI={() => setAiPanelOpen(o => !o)}
+        onOpenAI={() => { setAiPanelOpen(o => !o); setGamesPanelOpen(false) }}
+        onOpenGames={() => { setGamesPanelOpen(o => !o); setAiPanelOpen(false) }}
         toolsOpen={toolsOpen}
         aiPanelOpen={aiPanelOpen}
+        gamesPanelOpen={gamesPanelOpen}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
         t={t}
@@ -177,6 +181,15 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
           onProjectVideo={(videoId) => { setVideoOverlay(videoId); setAiOverlay(null); setAiPanelOpen(false) }}
           onClose={() => setAiPanelOpen(false)}
           t={t}
+        />
+      )}
+
+      {gamesPanelOpen && (
+        <GamesPanel
+          moment={moment}
+          classroomData={classroomData}
+          isEn={isEnglishSubject(assignment?.subject)}
+          onClose={() => setGamesPanelOpen(false)}
         />
       )}
 

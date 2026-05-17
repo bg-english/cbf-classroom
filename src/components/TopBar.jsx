@@ -7,8 +7,8 @@ import { getCurrentPeriod, getPeriodProgress } from '../utils/periodUtils'
  */
 export default function TopBar({
   teacher, assignment, plan,
-  onChangeClass, onSignOut, onOpenTools, onOpenWhiteboard, onOpenAI,
-  toolsOpen, aiPanelOpen, isFullscreen, onToggleFullscreen, t
+  onChangeClass, onSignOut, onOpenTools, onOpenWhiteboard, onOpenAI, onOpenGames,
+  toolsOpen, aiPanelOpen, gamesPanelOpen, isFullscreen, onToggleFullscreen, t
 }) {
   const [time, setTime] = useState(new Date())
   const [elapsed, setElapsed] = useState(0)
@@ -64,6 +64,14 @@ export default function TopBar({
           title={t.tools}
         >
           🌐
+        </button>
+
+        <button
+          className={`cc-games-btn ${gamesPanelOpen ? 'cc-games-active' : ''}`}
+          onClick={onOpenGames}
+          title="Dinámica de clase"
+        >
+          🎲
         </button>
 
         <button
