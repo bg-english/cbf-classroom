@@ -3,8 +3,8 @@ import { getCurrentPeriod } from '../utils/periodUtils'
 
 /**
  * PersistentHeader — always-visible top section (full width).
- * Row 1: Biblical verse indicator (tappable) + subject/clock (right)
- * Row 2: Topic | Objective
+ * Row 1: Biblical verse — full text, wraps, tappable
+ * Row 2: Clock · Date | Topic | Objective — all fully visible, no truncation
  */
 export default function PersistentHeader({
   todayKey, dayContent, plan, classroomData,
@@ -38,48 +38,53 @@ export default function PersistentHeader({
   const verseRef  = classroomData?.indicatorVerseRef || null
 
   const clock = time.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
-  const period = getCurrentPeriod()
 
   const accent = moment?.color || 'var(--accent)'
 
   return (
     <div className="ph-header" style={{ '--ph-accent': accent }}>
 
-      {/* ── ROW 1: Verse (left) + Meta (right) ── */}
-      <div className="ph-verse-row">
-        <div
-          className={`ph-verse-block ${principio ? 'ph-verse-tappable' : ''}`}
-          onClick={principio
-            ? () => onVerseSpotlight?.({ text: principio, ref: verseRef, label: t.bsPrinciple })
-            : undefined}
-          role={principio ? 'button' : undefined}
-        >
-          <span className="ph-verse-icon">✝</span>
-          <span className="ph-verse-text">
-            {principio || t.bsNoPrinciple}
-            {verseRef && <span className="ph-verse-ref"> — {verseRef}</span>}
-          </span>
-          {principio && <span className="ph-verse-expand" aria-hidden="true">↗</span>}
-        </div>
-
-        <div className="ph-meta-block">
-          <span className="ph-subject">{subject}{period ? ` · ${period.short}` : ''}</span>
-          <span className="ph-clock">{clock}</span>
-          <span className="ph-date">{dateLabel}</span>
-        </div>
+      {/* ── ROW 1: Verse — full width, wraps completely ── */}
+      <div
+        className={`ph-verse-row ${principio ? 'ph-verse-tappable' : ''}`}
+        onClick={principio
+          ? () => onVerseSpotlight?.({ text: principio, ref: verseRef, label: t.bsPrinciple })
+          : undefined}
+        role={principio ? 'button' : undefined}
+      >
+        <span className="ph-verse-icon">✝</span>
+        <span className="ph-verse-text">
+          {principio || t.bsNoPrinciple}
+          {verseRef && <span className="ph-verse-ref"> — {verseRef}</span>}
+        </span>
+        {principio && <span className="ph-verse-expand" aria-hidden="true">↗</span>}
       </div>
 
-      {/* ── ROW 2: Topic | Objective ── */}
+      {/* ── ROW 2: Clock·Date | Topic | Objective ── */}
       <div className="ph-info-row" style={{ borderTopColor: accent }}>
+
+        {/* Clock + Date */}
+        <div className="ph-info-block ph-datetime-block">
+          <span className="ph-clock">{clock}</span>
+          {dateLabel && <span className="ph-date">{dateLabel}</span>}
+        </div>
+
+        <div className="ph-info-divider" />
+
+        {/* Topic */}
         <div className="ph-info-block">
           <span className="ph-info-label">{t.bsTopic}</span>
           <span className="ph-info-value">{dayUnit || t.bsNoTopic}</span>
         </div>
+
         <div className="ph-info-divider" />
-        <div className="ph-info-block">
+
+        {/* Objective */}
+        <div className="ph-info-block ph-objective-block">
           <span className="ph-info-label">{t.bsObjective}</span>
           <span className="ph-info-value">{objectiveText || t.bsNoObjective}</span>
         </div>
+
       </div>
     </div>
   )
