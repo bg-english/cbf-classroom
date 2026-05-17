@@ -81,14 +81,14 @@ Deno.serve(async (req) => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: fullPrompt }] }],
+      contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
       generationConfig: {
-        responseModalities: ['image'],
-        imagenConfig: { aspectRatio },
+        responseModalities: ['IMAGE'],
       },
       safetySettings: [
         { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_LOW_AND_ABOVE' },
-        { category: 'HARM_CATEGORY_VIOLENCE',          threshold: 'BLOCK_LOW_AND_ABOVE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_LOW_AND_ABOVE' },
+        { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_LOW_AND_ABOVE' },
         { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_LOW_AND_ABOVE' },
       ],
     }),
