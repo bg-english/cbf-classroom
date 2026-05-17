@@ -4,8 +4,8 @@ const GEMINI_API_KEY  = Deno.env.get('GEMINI_API_KEY')
 const SUPABASE_URL    = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 
-const GEMINI_ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent'
+const IMAGEN_ENDPOINT =
+  'https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -76,47 +76,42 @@ Deno.serve(async (req) => {
 
   const fullPrompt = buildPrompt(prompt, context || {})
 
-  // Call Gemini image generation
-  const geminiRes = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
+  // Call Imagen 3 via predict endpoint
+  const imagenRes = await fetch(`${IMAGEN_ENDPOINT}?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
-      generationConfig: {
-        responseModalities: ['IMAGE'],
+      instances: [{ prompt: fullPrompt }],
+      parameters: {
+        sampleCount: 1,
+        aspectRatio,
+        safetySetting: 'block_some',
+        personGeneration: 'allow_adult',
       },
-      safetySettings: [
-        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_LOW_AND_ABOVE' },
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_LOW_AND_ABOVE' },
-        { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_LOW_AND_ABOVE' },
-        { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_LOW_AND_ABOVE' },
-      ],
     }),
   })
 
-  if (!geminiRes.ok) {
-    const err = await geminiRes.text()
-    return new Response(JSON.stringify({ error: `Gemini error: ${geminiRes.status}`, detail: err }), {
+  if (!imagenRes.ok) {
+    const err = await imagenRes.text()
+    return new Response(JSON.stringify({ error: `Imagen error: ${imagenRes.status}`, detail: err }), {
       status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
-  const geminiData = await geminiRes.json()
+  const imagenData = await imagenRes.json()
 
-  // Extract base64 image from response
-  const parts = geminiData?.candidates?.[0]?.content?.parts || []
-  const imagePart = parts.find((p: { inlineData?: { mimeType: string; data: string } }) => p.inlineData?.mimeType?.startsWith('image/'))
-
-  if (!imagePart) {
-    return new Response(JSON.stringify({ error: 'No image returned by Gemini', raw: geminiData }), {
+  // Extract base64 image from Imagen 3 response
+  const prediction = imagenData?.predictions?.[0]
+  if (!prediction?.bytesBase64Encoded) {
+    return new Response(JSON.stringify({ error: 'No image returned by Imagen 3', raw: imagenData }), {
       status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
   return new Response(
     JSON.stringify({
-      imageBase64: imagePart.inlineData.data,
-      mimeType: imagePart.inlineData.mimeType,
+      imageBase64: prediction.bytesBase64Encoded,
+      mimeType: prediction.mimeType || 'image/png',
       prompt: fullPrompt,
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
