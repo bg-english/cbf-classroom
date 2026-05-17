@@ -134,10 +134,13 @@ Respond ONLY with valid JSON array:
   return JSON.parse(match[0])
 }
 
-// ── Gemini: generate one panel image ─────────────────────────────────────────
+// ── Gemini: generate one panel image (with retry on 429) ─────────────────────
+
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 
 async function generatePanelImage(
-  scene: string, grade: string
+  scene: string, grade: string,
+  attempt = 0
 ): Promise<{ base64: string; mimeType: string } | null> {
 
   const prompt =
@@ -155,14 +158,30 @@ async function generatePanelImage(
     }),
   })
 
-  if (!res.ok) return null
+  if (res.status === 429 && attempt < 3) {
+    // Rate limited — wait and retry (exponential backoff: 3s, 6s, 12s)
+    await sleep(3000 * Math.pow(2, attempt))
+    return generatePanelImage(scene, grade, attempt + 1)
+  }
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '')
+    console.error(`Gemini image error ${res.status}:`, errText.slice(0, 300))
+    return null
+  }
 
   const data = await res.json()
   const parts = data?.candidates?.[0]?.content?.parts || []
   const img   = parts.find((p: { inlineData?: { mimeType: string; data: string } }) =>
     p.inlineData?.mimeType?.startsWith('image/')
   )
-  return img ? { base64: img.inlineData.data, mimeType: img.inlineData.mimeType } : null
+
+  if (!img) {
+    console.error('Gemini returned no image part. Response:', JSON.stringify(data).slice(0, 400))
+    return null
+  }
+
+  return { base64: img.inlineData.data, mimeType: img.inlineData.mimeType }
 }
 
 // ── Supabase Storage: upload one panel ───────────────────────────────────────
@@ -238,27 +257,33 @@ Deno.serve(async (req) => {
   const script = await buildComicScript(verseText, verseRef, topic, grade, subject)
   if (!script.panels?.length) return json({ error: 'Failed to generate comic script' }, 502)
 
-  // Generate all 3 panel images in parallel
-  const rawImages = await Promise.all(
-    script.panels.map(panel => generatePanelImage(panel.scene, grade))
-  )
-
-  // Upload to Storage (sequential to avoid rate limits)
+  // Generate images SEQUENTIALLY with 2s gap to avoid Gemini rate limits
   const panels: { imageUrl: string | null; caption: string }[] = []
 
   for (let i = 0; i < script.panels.length; i++) {
-    const caption = script.panels[i].caption
-    const img     = rawImages[i]
+    if (i > 0) await sleep(2000)  // 2s between requests
 
-    if (!img || !planId || !classDate) {
-      // Return base64 data URI as fallback when storage not available
-      const dataUrl = img ? `data:${img.mimeType};base64,${img.base64}` : null
-      panels.push({ imageUrl: dataUrl, caption })
+    const caption = script.panels[i].caption
+    const img     = await generatePanelImage(script.panels[i].scene, grade)
+
+    if (!img) {
+      panels.push({ imageUrl: null, caption })
       continue
     }
 
-    const url = await uploadPanel(supabaseAdmin, img.base64, img.mimeType, planId, grade, classDate, verseType, i)
-    panels.push({ imageUrl: url ?? `data:${img.mimeType};base64,${img.base64}`, caption })
+    // Try Storage upload first; fall back to data URI
+    let imageUrl: string | null = null
+
+    if (planId && classDate) {
+      imageUrl = await uploadPanel(supabaseAdmin, img.base64, img.mimeType, planId, grade, classDate, verseType, i)
+    }
+
+    // Always have a data URI fallback so images render even if Storage fails
+    if (!imageUrl) {
+      imageUrl = `data:${img.mimeType};base64,${img.base64}`
+    }
+
+    panels.push({ imageUrl, caption })
   }
 
   return json({ panels, theme: script.theme })
