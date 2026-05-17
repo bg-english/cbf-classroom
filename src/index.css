@@ -2117,7 +2117,7 @@ a { color: var(--accent); text-decoration: none; }
 .sb-rubric-total strong { color: var(--accent); font-size: var(--text-lg); }
 
 /* =========================================================
-   MOMENT DOTS + GRADE — now inside cc-canvas-nav
+   MOMENT PILLS + GRADE — inside cc-canvas-nav
    ========================================================= */
 .cc-nav-center {
   display: flex;
@@ -2125,42 +2125,55 @@ a { color: var(--accent); text-decoration: none; }
   gap: 10px;
   flex: 1;
   justify-content: center;
+  overflow: hidden;
 }
-.cc-moment-dots {
+.cc-moment-pills {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   align-items: center;
+  overflow: hidden;
 }
-.cc-dot {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
-  border-radius: 50%;
+.cc-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
   border: 1.5px solid var(--border-light);
   background: var(--bg-700);
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: clamp(9px, 0.7vw, 11px);
+  font-weight: 600;
+  white-space: nowrap;
   transition: all 0.2s;
-  padding: 0;
+  min-height: 28px;
+  min-width: unset;
+  cursor: pointer;
 }
-.cc-dot.active {
+.cc-pill:active { opacity: 0.8; }
+.cc-pill-num {
+  font-family: var(--font-mono);
+  font-size: clamp(8px, 0.65vw, 10px);
+  font-weight: 700;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+.cc-pill-label {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.cc-pill.active {
   background: var(--dot-color);
   border-color: var(--dot-color);
   color: #fff;
-  transform: scale(1.2);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
-.cc-dot.done {
+.cc-pill.active .cc-pill-num { opacity: 0.75; }
+.cc-pill.done {
   background: var(--dot-color);
   border-color: var(--dot-color);
   color: #fff;
-  opacity: 0.4;
+  opacity: 0.38;
 }
 .cc-bottom-grade {
   font-size: var(--text-xs);

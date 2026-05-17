@@ -139,16 +139,16 @@ export default function MomentCanvas({
 
         <div className="cc-nav-center">
           {moments && (
-            <nav className="cc-moment-dots">
+            <nav className="cc-moment-pills">
               {moments.map((m, i) => (
                 <button
                   key={m.id}
-                  className={`cc-dot${activeMoment === i ? ' active' : ''}${i < activeMoment ? ' done' : ''}`}
+                  className={`cc-pill${activeMoment === i ? ' active' : ''}${i < activeMoment ? ' done' : ''}`}
                   style={{ '--dot-color': m.color }}
                   onClick={() => onSetMoment?.(i)}
-                  title={m.label}
                 >
-                  {m.id}
+                  <span className="cc-pill-num">{m.id}</span>
+                  <span className="cc-pill-label">{m.label}</span>
                 </button>
               ))}
             </nav>
