@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
-import { getCurrentPeriod } from '../utils/periodUtils'
 
 /**
  * PersistentHeader — always-visible top section (full width).
- * Row 1: Biblical verse — full text, wraps, tappable
- * Row 2: Clock · Date | Topic | Objective — all fully visible, no truncation
+ * Row 1: Date · Clock | Topic | Objective
+ * Row 2: Versículo del Indicador — prominent, labeled, tappable
  */
 export default function PersistentHeader({
   todayKey, dayContent, plan, classroomData,
@@ -38,32 +37,14 @@ export default function PersistentHeader({
   const verseRef  = classroomData?.indicatorVerseRef || null
 
   const clock = time.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
-
   const accent = moment?.color || 'var(--accent)'
 
   return (
     <div className="ph-header" style={{ '--ph-accent': accent }}>
 
-      {/* ── ROW 1: Verse — full width, wraps completely ── */}
-      <div
-        className={`ph-verse-row ${principio ? 'ph-verse-tappable' : ''}`}
-        onClick={principio
-          ? () => onVerseSpotlight?.({ text: principio, ref: verseRef, label: t.bsPrinciple })
-          : undefined}
-        role={principio ? 'button' : undefined}
-      >
-        <span className="ph-verse-icon">✝</span>
-        <span className="ph-verse-text">
-          {principio || t.bsNoPrinciple}
-          {verseRef && <span className="ph-verse-ref"> — {verseRef}</span>}
-        </span>
-        {principio && <span className="ph-verse-expand" aria-hidden="true">↗</span>}
-      </div>
+      {/* ── ROW 1: Date·Clock | Topic | Objective ── */}
+      <div className="ph-info-row">
 
-      {/* ── ROW 2: Clock·Date | Topic | Objective ── */}
-      <div className="ph-info-row" style={{ borderTopColor: accent }}>
-
-        {/* Clock + Date */}
         <div className="ph-info-block ph-datetime-block">
           <span className="ph-clock">{clock}</span>
           {dateLabel && <span className="ph-date">{dateLabel}</span>}
@@ -71,7 +52,6 @@ export default function PersistentHeader({
 
         <div className="ph-info-divider" />
 
-        {/* Topic */}
         <div className="ph-info-block">
           <span className="ph-info-label">{t.bsTopic}</span>
           <span className="ph-info-value">{dayUnit || t.bsNoTopic}</span>
@@ -79,13 +59,32 @@ export default function PersistentHeader({
 
         <div className="ph-info-divider" />
 
-        {/* Objective */}
         <div className="ph-info-block ph-objective-block">
           <span className="ph-info-label">{t.bsObjective}</span>
           <span className="ph-info-value">{objectiveText || t.bsNoObjective}</span>
         </div>
 
       </div>
+
+      {/* ── ROW 2: Versículo del Indicador — prominent ── */}
+      <div
+        className={`ph-verse-row ${principio ? 'ph-verse-tappable' : ''}`}
+        style={{ borderLeftColor: accent, background: `${accent}12` }}
+        onClick={principio
+          ? () => onVerseSpotlight?.({ text: principio, ref: verseRef, label: t.bsPrinciple })
+          : undefined}
+        role={principio ? 'button' : undefined}
+      >
+        <span className="ph-verse-label" style={{ color: accent }}>
+          ✝ {t.bsPrinciple}:
+        </span>
+        <span className="ph-verse-text">
+          {principio || t.bsNoPrinciple}
+          {verseRef && <span className="ph-verse-ref"> — {verseRef}</span>}
+        </span>
+        {principio && <span className="ph-verse-expand" style={{ color: accent }} aria-hidden="true">↗</span>}
+      </div>
+
     </div>
   )
 }
