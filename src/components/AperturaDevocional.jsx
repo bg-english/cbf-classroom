@@ -29,6 +29,7 @@ export default function AperturaDevocional({
 
   return (
     <VerseScene
+      key={currentScene.verseType}
       type={currentScene.type}
       badge={currentScene.badge}
       verseText={currentScene.verseText}

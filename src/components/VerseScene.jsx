@@ -4,27 +4,26 @@ import { useVerseComic } from '../hooks/useVerseComic'
 /**
  * VerseScene — full-screen, no-scroll scene for a single verse.
  *
- * type='comic'     → shows 3-panel animated comic strip below the verse text
- * type='questions' → shows 3 discussion questions below the verse text
- * type='vocabulary' → shows vocabulary HTML content (existing lesson content)
+ * type='comic'     → verse header + 3-panel comic strip (or "Generar" button if not cached)
+ * type='questions' → verse header + 3 discussion questions
+ * type='vocabulary' → vocabulary HTML content
  *
- * The teacher taps/clicks a panel to reveal it (optional step-through inside scene).
- * The scene fills the full available height — zero scroll.
+ * Generation is ALWAYS explicit — teacher taps "Generar" to create content.
+ * Navigating Next/Prev never triggers API calls.
+ * Once generated, content is auto-saved to the class library (cache).
  */
 export default function VerseScene({
-  type,           // 'comic' | 'questions' | 'vocabulary'
-  badge,          // e.g. "Versículo del Año"
+  type,
+  badge,
   verseText,
   verseRef,
-  verseType,      // cache key, e.g. 'verse_year_comic'
+  verseType,
+  vocabHtml,
   topic,
   grade,
   subject,
   planId,
   classDate,
-  // vocabulary-only
-  vocabHtml,
-  // styling
   accentColor,
   t,
 }) {
@@ -32,8 +31,8 @@ export default function VerseScene({
   const isQuestions = type === 'questions'
   const isVocab     = type === 'vocabulary'
 
-  const { panels, questions, loading, error, regenerate } = useVerseComic({
-    type:     isQuestions ? 'questions' : 'comic',
+  const { panels, questions, loading, error, cached, hasContent, generate, regenerate } = useVerseComic({
+    type:      isQuestions ? 'questions' : 'comic',
     verseText,
     verseRef,
     verseType,
@@ -42,23 +41,19 @@ export default function VerseScene({
     subject,
     planId,
     classDate,
-    enabled: !isVocab && !!verseText,
   })
 
   // For comic: reveal panels one by one on tap
   const [revealedCount, setRevealedCount] = useState(0)
   useEffect(() => {
     if (panels?.length) {
-      // Auto-reveal first panel after a short delay
-      const t = setTimeout(() => setRevealedCount(1), 600)
-      return () => clearTimeout(t)
+      const timer = setTimeout(() => setRevealedCount(1), 500)
+      return () => clearTimeout(timer)
     }
   }, [panels])
 
   function revealNext() {
-    if (panels && revealedCount < panels.length) {
-      setRevealedCount(c => c + 1)
-    }
+    if (panels && revealedCount < panels.length) setRevealedCount(c => c + 1)
   }
 
   // ── Vocabulary scene ──────────────────────────────────────────────────────
@@ -76,86 +71,73 @@ export default function VerseScene({
     )
   }
 
-  // ── Loading state ─────────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <div className="vs-scene vs-loading" style={{ '--vs-accent': accentColor }}>
-        <VerseHeader badge={badge} verseText={verseText} verseRef={verseRef} accentColor={accentColor} />
-        <div className="vs-generating">
-          <div className="vs-gen-strip">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="vs-panel-skeleton" style={{ animationDelay: `${i * 0.2}s` }} />
-            ))}
-          </div>
-          <div className="vs-gen-label">
-            <span className="vs-gen-dot" />
-            <span className="vs-gen-dot" />
-            <span className="vs-gen-dot" />
-            <span style={{ marginLeft: 10, opacity: 0.6, fontSize: '0.85em' }}>
-              {isQuestions ? 'Generando preguntas…' : 'Creando tira ilustrada…'}
-            </span>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // ── Shared layout wrapper ─────────────────────────────────────────────────
+  return (
+    <div className="vs-scene" style={{ '--vs-accent': accentColor }}>
 
-  // ── Error state ───────────────────────────────────────────────────────────
-  if (error) {
-    return (
-      <div className="vs-scene vs-error" style={{ '--vs-accent': accentColor }}>
-        <VerseHeader badge={badge} verseText={verseText} verseRef={verseRef} accentColor={accentColor} />
-        <div className="vs-error-body">
-          <span className="vs-error-icon">⚠</span>
-          <span>{error}</span>
-          <button className="vs-regen-btn" style={{ borderColor: accentColor, color: accentColor }} onClick={regenerate}>
-            Reintentar
+      {/* Verse header — always visible */}
+      <VerseHeader badge={badge} verseText={verseText} verseRef={verseRef} accentColor={accentColor} />
+
+      {/* Body depends on state */}
+      {loading ? (
+        <LoadingStrip isQuestions={isQuestions} accentColor={accentColor} />
+
+      ) : error ? (
+        <ErrorBody error={error} onRetry={generate} accentColor={accentColor} />
+
+      ) : !hasContent ? (
+        // ── Empty state: teacher must tap Generar ────────────────────────────
+        <div className="vs-empty">
+          <div className="vs-empty-icon">
+            {isQuestions ? '💬' : '🎨'}
+          </div>
+          <p className="vs-empty-hint">
+            {isQuestions
+              ? 'Genera preguntas de conexión con el tema'
+              : 'Genera la tira ilustrada para este versículo'}
+          </p>
+          <button
+            className="vs-generate-btn"
+            style={{ background: accentColor }}
+            onClick={generate}
+          >
+            {isQuestions ? '✦ Generar preguntas' : '✦ Generar tira ilustrada'}
           </button>
         </div>
-      </div>
-    )
-  }
 
-  // ── Questions scene ───────────────────────────────────────────────────────
-  if (isQuestions && questions) {
-    return (
-      <div className="vs-scene vs-questions" style={{ '--vs-accent': accentColor }}>
-        <VerseHeader badge={badge} verseText={verseText} verseRef={verseRef} accentColor={accentColor} />
+      ) : isQuestions && questions ? (
+        // ── Questions ────────────────────────────────────────────────────────
         <div className="vs-questions-section">
           <div className="vs-questions-label" style={{ color: accentColor }}>
             💬 {t?.connectionQuestions || 'Conexión con el Tema'}
           </div>
           <div className="vs-questions-list">
             {questions.map((q, i) => (
-              <div key={i} className="vs-question-card" style={{ borderLeftColor: accentColor, animationDelay: `${i * 0.15}s` }}>
-                <span className="vs-question-num" style={{ background: accentColor }}>
-                  {i + 1}
-                </span>
+              <div
+                key={i}
+                className="vs-question-card"
+                style={{ borderLeftColor: accentColor, animationDelay: `${i * 0.15}s` }}
+              >
+                <span className="vs-question-num" style={{ background: accentColor }}>{i + 1}</span>
                 <span className="vs-question-text">{q}</span>
               </div>
             ))}
           </div>
+          <button className="vs-regen-btn vs-regen-subtle" onClick={regenerate} title="Regenerar preguntas">↺</button>
         </div>
-        <button className="vs-regen-btn vs-regen-subtle" onClick={regenerate} title="Regenerar preguntas">
-          ↺
-        </button>
-      </div>
-    )
-  }
 
-  // ── Comic scene ───────────────────────────────────────────────────────────
-  if (isComic && panels) {
-    const canRevealMore = revealedCount < panels.length
-    return (
-      <div className="vs-scene vs-comic" style={{ '--vs-accent': accentColor }}>
-        <VerseHeader badge={badge} verseText={verseText} verseRef={verseRef} accentColor={accentColor} />
-
-        <div className="vs-comic-strip" onClick={canRevealMore ? revealNext : undefined}>
+      ) : isComic && panels ? (
+        // ── Comic strip ──────────────────────────────────────────────────────
+        <div
+          className="vs-comic-strip"
+          onClick={revealedCount < panels.length ? revealNext : undefined}
+          style={{ cursor: revealedCount < panels.length ? 'pointer' : 'default' }}
+        >
           {panels.map((panel, i) => (
             <div
               key={i}
               className={`vs-panel ${i < revealedCount ? 'vs-panel-visible' : 'vs-panel-hidden'}`}
-              style={{ '--panel-delay': `${i * 0.1}s` }}
+              style={{ '--panel-delay': `${i * 0.08}s` }}
             >
               <div className="vs-panel-img-wrap">
                 {panel.imageUrl ? (
@@ -168,29 +150,28 @@ export default function VerseScene({
             </div>
           ))}
 
-          {canRevealMore && (
+          {revealedCount < panels.length && (
             <div className="vs-reveal-hint" style={{ color: accentColor }}>
               Toca para continuar →
             </div>
           )}
+
+          <button className="vs-regen-btn vs-regen-subtle" onClick={(e) => { e.stopPropagation(); regenerate() }} title="Regenerar tira">
+            ↺
+          </button>
         </div>
 
-        <button className="vs-regen-btn vs-regen-subtle" onClick={regenerate} title="Regenerar tira">
-          ↺
-        </button>
-      </div>
-    )
-  }
+      ) : null}
 
-  // Fallback: empty state (verseText provided but no panels yet)
-  return (
-    <div className="vs-scene" style={{ '--vs-accent': accentColor }}>
-      <VerseHeader badge={badge} verseText={verseText} verseRef={verseRef} accentColor={accentColor} />
+      {/* Cached badge — subtle indicator that content is saved */}
+      {cached && hasContent && !loading && (
+        <div className="vs-cached-badge">✓ guardado</div>
+      )}
     </div>
   )
 }
 
-// ── Shared verse header ───────────────────────────────────────────────────────
+// ── Sub-components ────────────────────────────────────────────────────────────
 
 function VerseHeader({ badge, verseText, verseRef, accentColor }) {
   return (
@@ -204,6 +185,42 @@ function VerseHeader({ badge, verseText, verseRef, accentColor }) {
       {verseRef && (
         <cite className="vs-verse-ref" style={{ color: accentColor }}>— {verseRef}</cite>
       )}
+    </div>
+  )
+}
+
+function LoadingStrip({ isQuestions, accentColor }) {
+  return (
+    <div className="vs-generating">
+      <div className="vs-gen-strip">
+        {(isQuestions ? [0] : [0, 1, 2]).map(i => (
+          <div key={i} className="vs-panel-skeleton" style={{ animationDelay: `${i * 0.2}s` }} />
+        ))}
+      </div>
+      <div className="vs-gen-label">
+        <span className="vs-gen-dot" style={{ background: accentColor }} />
+        <span className="vs-gen-dot" style={{ background: accentColor }} />
+        <span className="vs-gen-dot" style={{ background: accentColor }} />
+        <span style={{ marginLeft: 10, opacity: 0.6, fontSize: '0.85em' }}>
+          {isQuestions ? 'Generando preguntas…' : 'Creando tira ilustrada…'}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function ErrorBody({ error, onRetry, accentColor }) {
+  return (
+    <div className="vs-error-body">
+      <span className="vs-error-icon">⚠</span>
+      <span>{error}</span>
+      <button
+        className="vs-generate-btn"
+        style={{ background: accentColor }}
+        onClick={onRetry}
+      >
+        Reintentar
+      </button>
     </div>
   )
 }
