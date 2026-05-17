@@ -9,7 +9,7 @@ export default function TopBar({
   teacher, assignment, combinedGrade, plan, todayKey,
   moments, activeMoment, onSelectMoment,
   onChangeClass, onSignOut, onOpenTools, onOpenWhiteboard, toolsOpen,
-  isFullscreen, onToggleFullscreen
+  isFullscreen, onToggleFullscreen, t
 }) {
   const [time, setTime] = useState(new Date())
   const [elapsed, setElapsed] = useState(0) // seconds since session start
@@ -84,7 +84,7 @@ export default function TopBar({
         <button
           className="cc-whiteboard-btn"
           onClick={onOpenWhiteboard}
-          title="Pizarra"
+          title={t.whiteboard}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
@@ -94,7 +94,7 @@ export default function TopBar({
         <button
           className={`cc-tools-btn ${toolsOpen ? 'cc-tools-active' : ''}`}
           onClick={onOpenTools}
-          title="Herramientas"
+          title={t.tools}
         >
           🌐
         </button>
@@ -115,19 +115,19 @@ export default function TopBar({
           {menuOpen && (
             <div className="cc-topbar-menu">
               <button onClick={() => { setMenuOpen(false); onOpenWhiteboard() }}>
-                ✏ Pizarra
+                ✏ {t.whiteboard}
               </button>
               <button onClick={() => { setMenuOpen(false); onOpenTools() }}>
-                🌐 Herramientas
+                🌐 {t.tools}
               </button>
               <button onClick={() => { setMenuOpen(false); onToggleFullscreen() }}>
-                {isFullscreen ? '⊡ Salir de pantalla completa' : '⊞ Pantalla completa'}
+                {isFullscreen ? t.exitFullscreen : t.enterFullscreen}
               </button>
               <button onClick={() => { setMenuOpen(false); onChangeClass() }}>
-                🔄 Cambiar clase
+                {t.changeClass}
               </button>
               <button onClick={() => { setMenuOpen(false); onSignOut() }}>
-                ↩ Salir
+                {t.signOut}
               </button>
             </div>
           )}

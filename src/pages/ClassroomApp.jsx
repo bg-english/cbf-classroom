@@ -135,7 +135,7 @@ export default function ClassroomApp({ session, teacher }) {
     return (
       <div className="cc-loading-screen">
         <div className="cc-loading-logo">ETA</div>
-        <p className="cc-loading-text">Cargando aula...</p>
+        <p className="cc-loading-text">Loading classroom...</p>
         <div className="cc-loading-spinner" />
       </div>
     )

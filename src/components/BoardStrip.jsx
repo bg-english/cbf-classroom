@@ -11,7 +11,7 @@
  * The biblical verse permeates the entire session — this bar is its anchor.
  * Never disappears during the class session.
  */
-export default function BoardStrip({ todayKey, dayContent, plan, classroomData, subject, combinedGrade }) {
+export default function BoardStrip({ todayKey, dayContent, plan, classroomData, subject, combinedGrade, t }) {
   const dateLabel = todayKey
     ? new Date(todayKey + 'T12:00:00').toLocaleDateString('es-CO', {
         weekday: 'long', day: 'numeric', month: 'long'
@@ -39,7 +39,7 @@ export default function BoardStrip({ todayKey, dayContent, plan, classroomData, 
     <div className="bs-strip">
       {/* 1. DATE */}
       <div className="bs-item bs-date">
-        <span className="bs-label">Date</span>
+        <span className="bs-label">{t.bsDate}</span>
         <span className="bs-value">{dateLabel}</span>
       </div>
 
@@ -47,25 +47,25 @@ export default function BoardStrip({ todayKey, dayContent, plan, classroomData, 
 
       {/* 2. SUBJECT TO BE WORKED */}
       <div className="bs-item bs-topic">
-        <span className="bs-label">Topic</span>
-        <span className="bs-value">{dayUnit || 'No topic assigned'}</span>
+        <span className="bs-label">{t.bsTopic}</span>
+        <span className="bs-value">{dayUnit || t.bsNoTopic}</span>
       </div>
 
       <div className="bs-divider" />
 
       {/* 3. LESSON OBJECTIVE */}
       <div className="bs-item bs-objective">
-        <span className="bs-label">Objective</span>
-        <span className="bs-value">{objectiveText || 'No objective assigned'}</span>
+        <span className="bs-label">{t.bsObjective}</span>
+        <span className="bs-value">{objectiveText || t.bsNoObjective}</span>
       </div>
 
       <div className="bs-divider" />
 
       {/* 4. BIBLICAL PRINCIPLE OF THE INDICATOR */}
       <div className="bs-item bs-principle">
-        <span className="bs-label"><span className="bs-icon">✝</span> Biblical Principle</span>
+        <span className="bs-label"><span className="bs-icon">✝</span> {t.bsPrinciple}</span>
         <span className="bs-value bs-verse-text">
-          {principio || 'No principle assigned'}
+          {principio || t.bsNoPrinciple}
           {verseRef && <span className="bs-ref"> — {verseRef}</span>}
         </span>
       </div>

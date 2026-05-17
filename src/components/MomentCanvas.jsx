@@ -12,7 +12,7 @@ import { analyzeContent } from '../utils/contentAnalyzer'
 export default function MomentCanvas({
   moment, sectionContent, plan, dayContent, classroomData,
   todayKey, combinedGrade, subject,
-  onNext, onPrev, isFirst, isLast
+  onNext, onPrev, isFirst, isLast, t
 }) {
   const biblicalPrinciple = classroomData?.biblicalPrinciple
     || plan?.content?.objetivo?.principio
@@ -47,6 +47,7 @@ export default function MomentCanvas({
             todayKey={todayKey}
             combinedGrade={combinedGrade}
             subject={subject}
+            t={t}
           />
         ) : moment.id === 2 ? (
           <M2TemaDia
@@ -58,21 +59,23 @@ export default function MomentCanvas({
             subject={subject}
             classroomData={classroomData}
             sectionContent={sectionContent}
+            t={t}
           />
         ) : (
           <>
-            {moment.id === 3 && <WBTBanner />}
+            {moment.id === 3 && <WBTBanner t={t} />}
             <SectionContent
               moment={moment}
               sectionContent={sectionContent}
               plan={plan}
               dayContent={dayContent}
+              t={t}
             />
             {moment.id === 4 && biblicalPrinciple && (
-              <BiblicalMidCard principle={biblicalPrinciple} classroomData={classroomData} />
+              <BiblicalMidCard principle={biblicalPrinciple} classroomData={classroomData} t={t} />
             )}
             {moment.id === 5 && biblicalPrinciple && (
-              <BiblicalCloseCard principle={biblicalPrinciple} classroomData={classroomData} />
+              <BiblicalCloseCard principle={biblicalPrinciple} classroomData={classroomData} t={t} />
             )}
           </>
         )}
@@ -85,7 +88,7 @@ export default function MomentCanvas({
           onClick={onPrev}
           disabled={isFirst}
         >
-          ← Anterior
+          {t.prev}
         </button>
 
         <div className="cc-canvas-plan-info">
@@ -94,7 +97,7 @@ export default function MomentCanvas({
               {plan.date_range || `Semana ${plan.week_number}`}
             </span>
           ) : (
-            <span className="cc-plan-label cc-plan-none">Sin guía esta semana</span>
+            <span className="cc-plan-label cc-plan-none">{t.noGuide}</span>
           )}
         </div>
 
@@ -104,7 +107,7 @@ export default function MomentCanvas({
           disabled={isLast}
           style={{ background: moment.color }}
         >
-          {isLast ? '✓ Finalizar clase' : 'Siguiente →'}
+          {isLast ? t.endClass : t.next}
         </button>
       </div>
     </main>
@@ -115,7 +118,7 @@ export default function MomentCanvas({
  * SectionContent — renders HTML content + smartBlocks + media for moments 2–6.
  * Uses contentAnalyzer to auto-detect the best layout for the HTML content.
  */
-function SectionContent({ moment, sectionContent, plan, dayContent }) {
+function SectionContent({ moment, sectionContent, plan, dayContent, t }) {
   const hasBlocks      = sectionContent?.blocks?.length > 0
   const hasContent     = sectionContent?.content && sectionContent.content !== '<p></p>'
   const hasSmartBlocks = sectionContent?.smartBlocks?.length > 0
@@ -130,15 +133,15 @@ function SectionContent({ moment, sectionContent, plan, dayContent }) {
         <div className="cc-canvas-empty-icon" style={{ color: moment.color }}>
           {MOMENT_ICONS[moment.id] || '📋'}
         </div>
-        <p>No hay contenido para <strong>{moment.label}</strong>.</p>
+        <p>{t.noContent} <strong>{moment.label}</strong>.</p>
         {!plan && (
-          <p className="cc-canvas-empty-hint">Crea una guía en CBF Planner para que aparezca aquí.</p>
+          <p className="cc-canvas-empty-hint">{t.createGuideHint}</p>
         )}
         {plan && !dayContent && (
-          <p className="cc-canvas-empty-hint">La guía <em>{plan.date_range}</em> no tiene contenido para hoy.</p>
+          <p className="cc-canvas-empty-hint">{t.noContentToday.replace('{range}', plan.date_range || '')}</p>
         )}
         {plan && dayContent && (
-          <p className="cc-canvas-empty-hint">Esta sección está vacía en la guía. Edítala en CBF Planner.</p>
+          <p className="cc-canvas-empty-hint">{t.emptySectionHint}</p>
         )}
       </div>
     )
@@ -203,7 +206,7 @@ function SectionContent({ moment, sectionContent, plan, dayContent }) {
         <div className="sc-smartblocks">
           <div className="sc-smartblocks-header">
             <span className="sc-smartblocks-badge" style={{ background: moment.color }}>
-              Actividad Interactiva
+              {t.interactiveActivity}
             </span>
           </div>
           {sectionContent.smartBlocks.map((block, i) => (
@@ -385,7 +388,7 @@ function MediaVideo({ video }) {
  * El tablero ES el contenido principal de este momento (ABC paso 2).
  * "Escribe en el tablero... no borrar durante la clase."
  */
-function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject, classroomData, sectionContent }) {
+function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject, classroomData, sectionContent, t }) {
   const dateLabel = todayKey
     ? new Date(todayKey + 'T12:00:00').toLocaleDateString('es-CO', {
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
@@ -404,29 +407,29 @@ function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject,
       <div className="m2-board">
         <div className="m2-board-header">
           <span className="m2-board-icon">🖊</span>
-          <span>Tablero de Clase</span>
-          <span className="m2-board-note">No borrar durante la clase</span>
+          <span>{t.classBoard}</span>
+          <span className="m2-board-note">{t.doNotErase}</span>
         </div>
         <div className="m2-board-grid">
           <div className="m2-field">
-            <span className="m2-label">Fecha</span>
+            <span className="m2-label">{t.date}</span>
             <span className="m2-value">{dateLabel}</span>
           </div>
           <div className="m2-field">
-            <span className="m2-label">Grado · Materia</span>
+            <span className="m2-label">{t.gradeSubject}</span>
             <span className="m2-value">{combinedGrade} · {subject}</span>
           </div>
           <div className="m2-field m2-full">
-            <span className="m2-label">Tema del Día</span>
-            <span className="m2-value m2-value-large">{dayUnit || 'Sin tema asignado'}</span>
+            <span className="m2-label">{t.topicOfDay}</span>
+            <span className="m2-value m2-value-large">{dayUnit || t.noTopicAssigned}</span>
           </div>
           <div className="m2-field m2-full">
-            <span className="m2-label">Objetivo / Indicador</span>
-            <span className="m2-value m2-value-indicator">{objectiveText || 'Sin objetivo asignado'}</span>
+            <span className="m2-label">{t.objective}</span>
+            <span className="m2-value m2-value-indicator">{objectiveText || t.noObjectiveAssigned}</span>
           </div>
           {principio && (
             <div className="m2-field m2-full m2-field-principle">
-              <span className="m2-label">✝ Principio Bíblico</span>
+              <span className="m2-label">{t.biblicalPrinciple}</span>
               <span className="m2-value">{principio}</span>
             </div>
           )}
@@ -440,6 +443,7 @@ function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject,
           sectionContent={sectionContent}
           plan={plan}
           dayContent={dayContent}
+          t={t}
         />
       )}
     </div>
@@ -451,25 +455,21 @@ function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject,
  * Ice-breaker to create engagement · Biblical verse reminder · Activate prior knowledge
  * Note: Class rules are now stated in TOPICS (Momento 1), not here.
  */
-function WBTBanner() {
+function WBTBanner({ t }) {
   return (
     <div className="wbt-banner">
       <div className="wbt-section">
         <span className="wbt-icon">🧠</span>
         <div className="wbt-text">
-          <span className="wbt-title">Whole Brain Teaching — Reglas de Clase</span>
+          <span className="wbt-title">{t.wbtTitle}</span>
           <div className="wbt-rules">
-            <span>1 · Sigue instrucciones rápido</span>
-            <span>2 · Levanta la mano para hablar</span>
-            <span>3 · Levanta la mano para pararte</span>
-            <span>4 · Toma decisiones inteligentes</span>
-            <span>5 · Sé amable con tus compañeros</span>
+            {t.wbtRules.map((rule, i) => <span key={i}>{rule}</span>)}
           </div>
         </div>
       </div>
       <div className="wbt-precon">
         <span className="wbt-precon-icon">🔄</span>
-        <span><strong>Pre-conocimiento:</strong> ¿Qué aprendimos en la clase anterior?</span>
+        <span><strong>{t.priorKnowledge}</strong> {t.priorKnowledgeQ}</span>
       </div>
     </div>
   )
@@ -480,11 +480,11 @@ function WBTBanner() {
  * The biblical verse MUST connect with the content/activity.
  * This is the verse connection point (MOTIVATION=reminder → here=connection → CLOSING=reflection)
  */
-function BiblicalMidCard({ principle, classroomData }) {
+function BiblicalMidCard({ principle, classroomData, t }) {
   return (
     <div className="bib-card bib-card-mid">
       <div className="bib-card-badge">
-        <span>✝</span> Principio Bíblico del Mes — 5 min
+        <span>✝</span> {t.bibPrincipleMonth}
       </div>
       <blockquote className="bib-card-text">{principle}</blockquote>
       {classroomData?.indicatorVerseRef && (
@@ -502,14 +502,14 @@ function BiblicalMidCard({ principle, classroomData }) {
  * Biblical verse reflection — completes the thread: MOTIVATION → SKILL → CLOSING
  * "How does [principle] change your view of [topic]?"
  */
-function BiblicalCloseCard({ principle, classroomData }) {
+function BiblicalCloseCard({ principle, classroomData, t }) {
   return (
     <div className="bib-card bib-card-close">
       <div className="bib-card-badge">
-        <span>✝</span> Biblical Closing Reflection
+        <span>✝</span> {t.bibClosingReflection}
       </div>
       <p className="bib-card-prompt">
-        Conecta el aprendizaje de hoy con el principio bíblico como cierre natural de la clase.
+        {t.bibClosingPrompt}
       </p>
       <blockquote className="bib-card-text">{principle}</blockquote>
       {classroomData?.indicatorVerseRef && (

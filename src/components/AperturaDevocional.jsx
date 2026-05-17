@@ -8,7 +8,7 @@
  *
  * Datos desde: schools.year_verse · school_monthly_principles · news_projects
  */
-export default function AperturaDevocional({ classroomData, plan, dayContent, todayKey, combinedGrade, subject }) {
+export default function AperturaDevocional({ classroomData, plan, dayContent, todayKey, combinedGrade, subject, t }) {
   const objetivo = plan?.content?.objetivo || {}
   const indicadores = objetivo.indicadores || []
   const principio = objetivo.principio || null
@@ -39,7 +39,7 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
         {/* Versículo del Año */}
         {classroomData?.yearVerse && (
           <div className="ap-verse ap-verse-year">
-            <div className="ap-verse-badge">✝ Versículo del Año</div>
+            <div className="ap-verse-badge">{t.verseYear}</div>
             <blockquote
               className="ap-verse-text"
               dangerouslySetInnerHTML={{ __html: classroomData.yearVerse }}
@@ -53,7 +53,7 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
         {/* Versículo del Mes */}
         {classroomData?.monthVerse && (
           <div className="ap-verse ap-verse-month">
-            <div className="ap-verse-badge">📅 Versículo del Mes</div>
+            <div className="ap-verse-badge">{t.verseMonth}</div>
             <blockquote
               className="ap-verse-text"
               dangerouslySetInnerHTML={{ __html: classroomData.monthVerse }}
@@ -67,7 +67,7 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
         {/* Versículo de la Guía Semanal */}
         {guideVerse?.text && (
           <div className="ap-verse ap-verse-guide">
-            <div className="ap-verse-badge">��� Versículo de la Guía</div>
+            <div className="ap-verse-badge">{t.verseGuide}</div>
             <blockquote className="ap-verse-text">{guideVerse.text}</blockquote>
             {guideVerse.ref && (
               <cite className="ap-verse-ref">{guideVerse.ref}</cite>
@@ -78,9 +78,9 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
         {/* Principio Bíblico del Indicador */}
         {classroomData?.biblicalPrinciple && (
           <div className="ap-verse ap-verse-indicator">
-            <div className="ap-verse-badge">🎯 Principio del Indicador</div>
+            <div className="ap-verse-badge">{t.principleIndicator}</div>
             {classroomData.newsProjectTitle && (
-              <div className="ap-verse-project">Proyecto: {classroomData.newsProjectTitle}</div>
+              <div className="ap-verse-project">{t.project}: {classroomData.newsProjectTitle}</div>
             )}
             <blockquote className="ap-verse-text">
               {classroomData.biblicalPrinciple}
@@ -90,7 +90,7 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
             )}
             {classroomData.biblicalReflection && (
               <div className="ap-verse-reflection">
-                <span>💬 Reflexión:</span> {classroomData.biblicalReflection}
+                <span>💬 {t.reflection}</span> {classroomData.biblicalReflection}
               </div>
             )}
           </div>
@@ -99,7 +99,7 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
         {/* Principio del plan (fallback) */}
         {!classroomData?.biblicalPrinciple && principio && (
           <div className="ap-verse ap-verse-indicator">
-            <div className="ap-verse-badge">🎯 Principio del Indicador</div>
+            <div className="ap-verse-badge">{t.principleIndicator}</div>
             <blockquote className="ap-verse-text">{principio}</blockquote>
           </div>
         )}
@@ -108,7 +108,7 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
         {!classroomData?.yearVerse && !classroomData?.monthVerse && !guideVerse?.text && !classroomData?.biblicalPrinciple && !principio && (
           <div className="ap-empty-verses">
             <div className="ap-empty-icon">✝</div>
-            <p>Configura el versículo del año en <strong>Ajustes</strong> y el versículo del mes en <strong>Principios</strong> dentro de CBF Planner.</p>
+            <p>{t.configureVersesHint}</p>
           </div>
         )}
       </div>
@@ -117,7 +117,7 @@ export default function AperturaDevocional({ classroomData, plan, dayContent, to
       {dayContent?.sections?.subject?.content &&
        dayContent.sections.subject.content !== '<p></p>' && (
         <div className="ap-section-content">
-          <div className="ap-section-label">📋 Lista de Vocabulario</div>
+          <div className="ap-section-label">{t.vocabList}</div>
           <div
             className="cc-rich-content"
             dangerouslySetInnerHTML={{ __html: dayContent.sections.subject.content }}

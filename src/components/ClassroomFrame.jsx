@@ -4,6 +4,7 @@ import MomentCanvas from './MomentCanvas'
 import BoardStrip from './BoardStrip'
 import ToolsPanel from './ToolsPanel'
 import Whiteboard from './Whiteboard'
+import { getLocale } from '../utils/locale'
 
 /*
  * CBF Didactic Session — Boston Flex Methodological Approach 2026
@@ -35,6 +36,7 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   const { assignment, plan, todayKey, dayContent, combinedGrade } = resolved
+  const t = getLocale(assignment?.subject)
 
   // Determine day class status (backward compat: active===false → no_class)
   const classStatus = dayContent?.class_status
@@ -123,9 +125,10 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
         toolsOpen={toolsOpen}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
+        t={t}
       />
 
-      {showBoardStrip && <BoardStrip {...boardProps} />}
+      {showBoardStrip && <BoardStrip {...boardProps} t={t} />}
 
       {toolsOpen ? (
         <ToolsPanel onClose={() => setToolsOpen(false)} />
@@ -152,6 +155,7 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
           onPrev={goPrev}
           isFirst={activeMoment === 0}
           isLast={activeMoment === MOMENTS.length - 1}
+          t={t}
         />
       )}
 
