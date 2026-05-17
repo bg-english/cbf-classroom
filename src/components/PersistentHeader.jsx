@@ -42,8 +42,8 @@ export default function PersistentHeader({
   return (
     <div className="ph-header" style={{ '--ph-accent': accent }}>
 
-      {/* ── ROW 1: Date·Clock | Topic | Objective ── */}
-      <div className="ph-info-row">
+      {/* ── ROW 1: Date·Clock | Topic | Objective — más saturado ── */}
+      <div className="ph-info-row" style={{ background: `${accent}30` }}>
 
         <div className="ph-info-block ph-datetime-block">
           <span className="ph-clock">{clock}</span>
@@ -66,10 +66,10 @@ export default function PersistentHeader({
 
       </div>
 
-      {/* ── ROW 2: Versículo del Indicador — prominent ── */}
+      {/* ── ROW 2: Versículo del Indicador — 30% menos saturado que fila 1 ── */}
       <div
         className={`ph-verse-row ${principio ? 'ph-verse-tappable' : ''}`}
-        style={{ borderLeftColor: accent, background: `${accent}12` }}
+        style={{ borderLeftColor: accent, background: `${accent}1A` }}
         onClick={principio
           ? () => onVerseSpotlight?.({ text: principio, ref: verseRef, label: t.bsPrinciple })
           : undefined}
