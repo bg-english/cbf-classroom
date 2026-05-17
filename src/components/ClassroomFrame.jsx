@@ -5,6 +5,7 @@ import MomentCanvas from './MomentCanvas'
 import ToolsPanel from './ToolsPanel'
 import Whiteboard from './Whiteboard'
 import AIPanel from './AIPanel'
+import AssetBrowser from './AssetBrowser'
 import GamesPanel from './GamesPanel'
 import VerseSpotlight from './VerseSpotlight'
 import { playNext, playPrev, playVerse } from '../utils/sounds'
@@ -30,8 +31,10 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   const [toolsOpen, setToolsOpen] = useState(false)
   const [whiteboardOpen, setWhiteboardOpen] = useState(false)
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
+  const [assetBrowserOpen, setAssetBrowserOpen] = useState(false)
   const [gamesPanelOpen, setGamesPanelOpen] = useState(false)
   const [aiOverlay, setAiOverlay] = useState(null)
+  const [assetOverlay, setAssetOverlay] = useState(null)
   const [videoOverlay, setVideoOverlay] = useState(null)
   const [verseSpotlight, setVerseSpotlight] = useState(null)
   const [soundEnabled, setSoundEnabled] = useState(true)
@@ -148,8 +151,10 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
         onToggleSidebar={() => setSidebarOpen(o => !o)}
         onOpenTools={() => { setToolsOpen(true); setSidebarOpen(false) }}
         onOpenWhiteboard={() => { setWhiteboardOpen(true); setSidebarOpen(false) }}
-        onOpenAI={() => { setAiPanelOpen(o => !o); setGamesPanelOpen(false); setSidebarOpen(false) }}
-        onOpenGames={() => { setGamesPanelOpen(o => !o); setAiPanelOpen(false); setSidebarOpen(false) }}
+        onOpenAI={() => { setAiPanelOpen(o => !o); setGamesPanelOpen(false); setAssetBrowserOpen(false); setSidebarOpen(false) }}
+        onOpenAssets={() => { setAssetBrowserOpen(o => !o); setAiPanelOpen(false); setGamesPanelOpen(false); setSidebarOpen(false) }}
+        onOpenGames={() => { setGamesPanelOpen(o => !o); setAiPanelOpen(false); setAssetBrowserOpen(false); setSidebarOpen(false) }}
+        assetBrowserOpen={assetBrowserOpen}
         toolsOpen={toolsOpen}
         aiPanelOpen={aiPanelOpen}
         gamesPanelOpen={gamesPanelOpen}
@@ -198,6 +203,8 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
             onSetMoment={(i) => { setToolsOpen(false); setActiveMoment(i) }}
             aiOverlay={aiOverlay}
             onDismissAI={() => setAiOverlay(null)}
+            assetOverlay={assetOverlay}
+            onDismissAsset={() => setAssetOverlay(null)}
             videoOverlay={videoOverlay}
             onDismissVideo={() => setVideoOverlay(null)}
             transitionKey={transitionKey}
@@ -221,6 +228,20 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
           onProjectVideo={(videoId) => { setVideoOverlay(videoId); setAiOverlay(null); setAiPanelOpen(false) }}
           onClose={() => setAiPanelOpen(false)}
           t={t}
+        />
+      )}
+
+      {assetBrowserOpen && (
+        <AssetBrowser
+          assignment={assignment}
+          plan={plan}
+          dayContent={dayContent}
+          classroomData={classroomData}
+          moment={moment}
+          combinedGrade={combinedGrade}
+          todayKey={todayKey}
+          onProject={(asset) => { setAssetOverlay(asset); setAssetBrowserOpen(false) }}
+          onClose={() => setAssetBrowserOpen(false)}
         />
       )}
 

@@ -10,7 +10,9 @@ export default function MomentCanvas({
   todayKey, combinedGrade, subject,
   onNext, onPrev, isFirst, isLast, m3SubStep,
   moments, activeMoment, onSetMoment,
-  aiOverlay, onDismissAI, videoOverlay, onDismissVideo,
+  aiOverlay, onDismissAI,
+  assetOverlay, onDismissAsset,
+  videoOverlay, onDismissVideo,
   transitionKey, transitionDir,
   onVerseSpotlight,
   t
@@ -100,6 +102,23 @@ export default function MomentCanvas({
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 title="YouTube video"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Asset/image overlay */}
+        {assetOverlay && !videoOverlay && !aiOverlay && (
+          <div className="asset-overlay">
+            <div className="asset-overlay-header">
+              <span className="asset-overlay-label">{assetOverlay.label}</span>
+              <button className="asset-overlay-dismiss" onClick={onDismissAsset}>✕</button>
+            </div>
+            <div className="asset-overlay-body">
+              <img
+                src={assetOverlay.src}
+                alt={assetOverlay.label}
+                className={`asset-overlay-img ${assetOverlay.assetType === 'svg' ? 'asset-overlay-svg' : ''}`}
               />
             </div>
           </div>

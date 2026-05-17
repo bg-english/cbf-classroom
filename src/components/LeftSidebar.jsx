@@ -6,8 +6,8 @@ import { useState } from 'react'
  */
 export default function LeftSidebar({
   moment, sidebarOpen, onToggleSidebar,
-  onOpenTools, onOpenWhiteboard, onOpenAI, onOpenGames,
-  toolsOpen, aiPanelOpen, gamesPanelOpen,
+  onOpenTools, onOpenWhiteboard, onOpenAI, onOpenAssets, onOpenGames,
+  toolsOpen, aiPanelOpen, assetBrowserOpen, gamesPanelOpen,
   soundEnabled, onToggleSound,
   isFullscreen, onToggleFullscreen,
   onChangeClass, onSignOut,
@@ -56,6 +56,13 @@ export default function LeftSidebar({
           onClick={onOpenAI}
           activeColor={accent}
           isAI
+        />
+        <SidebarBtn
+          icon="🖼️"
+          label="Imágenes"
+          active={assetBrowserOpen}
+          onClick={onOpenAssets}
+          activeColor={accent}
         />
         <SidebarBtn
           icon="🎲"
