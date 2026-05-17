@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import PersistentHeader from './PersistentHeader'
 import LeftSidebar from './LeftSidebar'
 import MomentCanvas from './MomentCanvas'
@@ -8,6 +8,7 @@ import AIPanel from './AIPanel'
 import AssetBrowser from './AssetBrowser'
 import GamesPanel from './GamesPanel'
 import VerseSpotlight from './VerseSpotlight'
+import { buildM1Scenes } from './AperturaDevocional'
 import { playNext, playPrev, playVerse } from '../utils/sounds'
 import { getLocale, isEnglishSubject } from '../utils/locale'
 
@@ -26,6 +27,7 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   const [fontStep, setFontStep] = useState(0)
 
   const [activeMoment, setActiveMoment] = useState(0)
+  const [m1SceneIndex, setM1SceneIndex] = useState(0) // which verse scene is active in Moment 1
   const [m3SubStep, setM3SubStep] = useState(0) // 0 = WBT rules, 1 = section content
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [toolsOpen, setToolsOpen] = useState(false)
@@ -53,8 +55,18 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   const moment = MOMENTS[activeMoment]
   const sectionContent = dayContent?.sections?.[moment.section] || null
 
-  // Reset M3 sub-step when changing moments
+  // Build scene list for Moment 1 (verse scenes)
+  const m1Scenes = useMemo(
+    () => buildM1Scenes({ classroomData, plan, dayContent, t }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [classroomData?.yearVerse, classroomData?.monthVerse, classroomData?.biblicalPrinciple,
+     plan?.content?.verse?.text, dayContent?.sections?.subject?.content]
+  )
+  const m1Scene = m1Scenes[m1SceneIndex] || null
+
+  // Reset sub-steps when changing moments
   useEffect(() => { setM3SubStep(0) }, [activeMoment])
+  useEffect(() => { setM1SceneIndex(0) }, [activeMoment])
 
   // ── Fullscreen API ──
   const requestFullscreen = useCallback(() => {
@@ -90,12 +102,14 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     }
   }, [requestFullscreen])
 
-  // Navigation with M3 sub-step support + transitions + sounds
+  // Navigation with M1 scenes + M3 sub-step support + transitions + sounds
   function goNext() {
     setTransitionDir('next')
     setTransitionKey(k => k + 1)
     if (soundEnabled) playNext(activeMoment)
-    if (activeMoment === 2 && m3SubStep === 0) {
+    if (activeMoment === 0 && m1SceneIndex < m1Scenes.length - 1) {
+      setM1SceneIndex(i => i + 1)
+    } else if (activeMoment === 2 && m3SubStep === 0) {
       setM3SubStep(1)
     } else {
       setActiveMoment(m => Math.min(m + 1, MOMENTS.length - 1))
@@ -105,7 +119,9 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     setTransitionDir('prev')
     setTransitionKey(k => k + 1)
     if (soundEnabled) playPrev()
-    if (activeMoment === 2 && m3SubStep === 1) {
+    if (activeMoment === 0 && m1SceneIndex > 0) {
+      setM1SceneIndex(i => i - 1)
+    } else if (activeMoment === 2 && m3SubStep === 1) {
       setM3SubStep(0)
     } else {
       setActiveMoment(m => Math.max(m - 1, 0))
@@ -193,9 +209,14 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
             todayKey={todayKey}
             combinedGrade={combinedGrade}
             subject={assignment?.subject}
+            planId={plan?.id ? String(plan.id) : null}
+            classDate={todayKey}
+            m1Scene={m1Scene}
+            m1SceneIndex={m1SceneIndex}
+            m1SceneCount={m1Scenes.length}
             onNext={goNext}
             onPrev={goPrev}
-            isFirst={activeMoment === 0}
+            isFirst={activeMoment === 0 && m1SceneIndex === 0}
             isLast={activeMoment === MOMENTS.length - 1}
             m3SubStep={m3SubStep}
             moments={MOMENTS}

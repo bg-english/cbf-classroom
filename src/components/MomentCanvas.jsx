@@ -8,6 +8,8 @@ import { analyzeContent } from '../utils/contentAnalyzer'
 export default function MomentCanvas({
   moment, sectionContent, plan, dayContent, classroomData,
   todayKey, combinedGrade, subject,
+  planId, classDate,
+  m1Scene, m1SceneIndex, m1SceneCount,
   onNext, onPrev, isFirst, isLast, m3SubStep,
   moments, activeMoment, onSetMoment,
   aiOverlay, onDismissAI,
@@ -37,11 +39,13 @@ export default function MomentCanvas({
             classroomData={classroomData}
             plan={plan}
             dayContent={dayContent}
-            todayKey={todayKey}
             combinedGrade={combinedGrade}
             subject={subject}
+            planId={planId}
+            classDate={classDate}
+            currentScene={m1Scene}
+            accentColor={moment.color}
             t={t}
-            onVerseSpotlight={onVerseSpotlight}
           />
         ) : moment.id === 2 ? (
           <M2TemaDia
@@ -157,7 +161,18 @@ export default function MomentCanvas({
         </button>
 
         <div className="cc-nav-center">
-          {moments && (
+          {/* Moment 1: show scene progress dots instead of pills */}
+          {activeMoment === 0 && m1SceneCount > 1 ? (
+            <div className="cc-scene-dots">
+              {Array.from({ length: m1SceneCount }).map((_, i) => (
+                <span
+                  key={i}
+                  className={`cc-scene-dot${i === m1SceneIndex ? ' active' : ''}${i < m1SceneIndex ? ' done' : ''}`}
+                  style={i === m1SceneIndex ? { background: moment.color } : {}}
+                />
+              ))}
+            </div>
+          ) : moments && (
             <nav className="cc-moment-pills">
               {moments.map((m, i) => (
                 <button

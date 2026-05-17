@@ -1,133 +1,123 @@
+import VerseScene from './VerseScene'
+
 /**
- * AperturaDevocional — Momento 1
- * Verses are now tappable → VerseSpotlight full-screen modal.
+ * AperturaDevocional — Momento 1 (Topics)
+ *
+ * Renders one full-screen "scene" at a time (no scroll).
+ * The teacher taps Next/Prev in the nav bar to advance through scenes.
+ * Scenes are built from available verse data in the plan + classroomData.
+ *
+ * Scene order:
+ *   1. Year Verse   → comic strip
+ *   2. Month Verse  → comic strip
+ *   3. Guide Verse  → comic strip  (if exists)
+ *   4. Indicator Verse → discussion questions
+ *   5. Vocabulary   → existing section content
  */
 export default function AperturaDevocional({
-  classroomData, plan, dayContent, todayKey,
-  combinedGrade, subject, t, onVerseSpotlight
+  classroomData, plan, dayContent,
+  combinedGrade, subject,
+  planId, classDate,
+  currentScene,   // { type, verseType, badge, verseText, verseRef, vocabHtml }
+  accentColor,
+  t,
 }) {
-  const objetivo    = plan?.content?.objetivo || {}
-  const indicadores = objetivo.indicadores || []
-  const principio   = objetivo.principio || null
-  const guideVerse  = plan?.content?.verse || null
+  if (!currentScene) return null
 
-  const dayUnit = dayContent?.sections?.subject?.content
-    ? stripHtml(dayContent.sections.subject.content).slice(0, 120)
-    : (dayContent?.unit || subject || '')
+  const topic = dayContent?.unit || subject || ''
+  const grade = combinedGrade || ''
 
-  function spotlight(text, ref, label, html) {
-    if (!text && !html) return
-    onVerseSpotlight?.({ text, ref, label, html })
+  return (
+    <VerseScene
+      type={currentScene.type}
+      badge={currentScene.badge}
+      verseText={currentScene.verseText}
+      verseRef={currentScene.verseRef}
+      verseType={currentScene.verseType}
+      vocabHtml={currentScene.vocabHtml}
+      topic={topic}
+      grade={grade}
+      subject={subject}
+      planId={planId}
+      classDate={classDate}
+      accentColor={accentColor}
+      t={t}
+    />
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// buildM1Scenes — compute the ordered list of scenes for Moment 1.
+// Call this in ClassroomFrame so navigation knows the total count.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function buildM1Scenes({ classroomData, plan, dayContent, t }) {
+  const scenes = []
+
+  function stripHtml(html) {
+    return (html || '').replace(/<[^>]*>/g, '').trim()
   }
 
-  return (
-    <div className="ap-container">
+  // 1 — Year verse
+  if (classroomData?.yearVerse) {
+    scenes.push({
+      type:      'comic',
+      verseType: 'verse_year_comic',
+      badge:     t?.verseYear || 'Versículo del Año',
+      verseText: stripHtml(classroomData.yearVerse),
+      verseRef:  classroomData.yearVerseRef || '',
+    })
+  }
 
-      {/* ── VERSÍCULOS ── */}
-      <div className="ap-verses">
+  // 2 — Month verse
+  if (classroomData?.monthVerse) {
+    scenes.push({
+      type:      'comic',
+      verseType: 'verse_month_comic',
+      badge:     t?.verseMonth || 'Versículo del Mes',
+      verseText: stripHtml(classroomData.monthVerse),
+      verseRef:  classroomData.monthVerseRef || '',
+    })
+  }
 
-        {classroomData?.yearVerse && (
-          <VerseCard
-            badge={t.verseYear}
-            html={classroomData.yearVerse}
-            ref_={classroomData.yearVerseRef}
-            onTap={() => spotlight(
-              stripHtml(classroomData.yearVerse),
-              classroomData.yearVerseRef,
-              t.verseYear,
-              classroomData.yearVerse
-            )}
-          />
-        )}
+  // 3 — Guide verse (from plan)
+  const guideVerse = plan?.content?.verse
+  if (guideVerse?.text) {
+    scenes.push({
+      type:      'comic',
+      verseType: 'verse_guide_comic',
+      badge:     t?.verseGuide || 'Versículo Guía',
+      verseText: guideVerse.text,
+      verseRef:  guideVerse.ref || '',
+    })
+  }
 
-        {classroomData?.monthVerse && (
-          <VerseCard
-            badge={t.verseMonth}
-            html={classroomData.monthVerse}
-            ref_={classroomData.monthVerseRef}
-            onTap={() => spotlight(
-              stripHtml(classroomData.monthVerse),
-              classroomData.monthVerseRef,
-              t.verseMonth,
-              classroomData.monthVerse
-            )}
-          />
-        )}
+  // 4 — Indicator verse → questions
+  const indicatorText = classroomData?.biblicalPrinciple
+    || plan?.content?.objetivo?.principio
+    || null
+  if (indicatorText) {
+    scenes.push({
+      type:      'questions',
+      verseType: 'indicator_questions',
+      badge:     t?.principleIndicator || 'Principio Bíblico del Indicador',
+      verseText: indicatorText,
+      verseRef:  classroomData?.indicatorVerseRef || '',
+    })
+  }
 
-        {guideVerse?.text && (
-          <VerseCard
-            badge={t.verseGuide}
-            text={guideVerse.text}
-            ref_={guideVerse.ref}
-            onTap={() => spotlight(guideVerse.text, guideVerse.ref, t.verseGuide)}
-          />
-        )}
+  // 5 — Vocabulary (existing lesson content for Moment 1)
+  const vocabHtml = dayContent?.sections?.subject?.content
+  if (vocabHtml && vocabHtml !== '<p></p>') {
+    scenes.push({
+      type:      'vocabulary',
+      verseType: 'vocabulary',
+      badge:     t?.vocabList || 'Vocabulary',
+      verseText: null,
+      verseRef:  null,
+      vocabHtml,
+    })
+  }
 
-        {classroomData?.biblicalPrinciple && (
-          <VerseCard
-            badge={t.principleIndicator}
-            project={classroomData.newsProjectTitle ? `${t.project}: ${classroomData.newsProjectTitle}` : null}
-            text={classroomData.biblicalPrinciple}
-            ref_={classroomData.indicatorVerseRef}
-            reflection={classroomData.biblicalReflection
-              ? `💬 ${t.reflection} ${classroomData.biblicalReflection}`
-              : null}
-            onTap={() => spotlight(
-              classroomData.biblicalPrinciple,
-              classroomData.indicatorVerseRef,
-              t.principleIndicator
-            )}
-          />
-        )}
-
-        {!classroomData?.biblicalPrinciple && principio && (
-          <VerseCard
-            badge={t.principleIndicator}
-            text={principio}
-            onTap={() => spotlight(principio, null, t.principleIndicator)}
-          />
-        )}
-
-        {!classroomData?.yearVerse && !classroomData?.monthVerse && !guideVerse?.text && !classroomData?.biblicalPrinciple && !principio && (
-          <div className="ap-empty-verses">
-            <div className="ap-empty-icon">✝</div>
-            <p>{t.configureVersesHint}</p>
-          </div>
-        )}
-      </div>
-
-      {/* ── VOCABULARY LIST ── */}
-      {dayContent?.sections?.subject?.content &&
-       dayContent.sections.subject.content !== '<p></p>' && (
-        <div className="ap-section-content">
-          <div className="ap-section-label">{t.vocabList}</div>
-          <div
-            className="cc-rich-content"
-            dangerouslySetInnerHTML={{ __html: dayContent.sections.subject.content }}
-          />
-        </div>
-      )}
-    </div>
-  )
-}
-
-/** VerseCard — tappable verse block with spotlight hint */
-function VerseCard({ badge, text, html, ref_, project, reflection, onTap }) {
-  return (
-    <div className="ap-verse ap-verse-tappable" onClick={onTap} role="button" tabIndex={0}>
-      <div className="ap-verse-badge">{badge}</div>
-      {project && <div className="ap-verse-project">{project}</div>}
-      {html
-        ? <blockquote className="ap-verse-text" dangerouslySetInnerHTML={{ __html: html }} />
-        : <blockquote className="ap-verse-text">{text}</blockquote>
-      }
-      {ref_ && <cite className="ap-verse-ref">{ref_}</cite>}
-      {reflection && <div className="ap-verse-reflection">{reflection}</div>}
-      <div className="ap-verse-tap-hint">↗ Toca para ampliar</div>
-    </div>
-  )
-}
-
-function stripHtml(html) {
-  return html?.replace(/<[^>]*>/g, '') || ''
+  return scenes
 }

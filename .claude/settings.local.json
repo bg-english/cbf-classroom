@@ -24,7 +24,12 @@
       "Bash(find:*)",
       "Bash(grep ALTER TABLE lesson_plans:*)",
       "Bash(wc -l \"/c/BOSTON FLEX/ClassroomOS/cbf-planner/src/pages/\"*.jsx)",
-      "Bash(wc -l \"/c/BOSTON FLEX/ClassroomOS/cbf-planner/src/components/\"*.jsx)"
+      "Bash(wc -l \"/c/BOSTON FLEX/ClassroomOS/cbf-planner/src/components/\"*.jsx)",
+      "Bash(grep -l \"print\\\\|@media print\\\\|comunicado\" \"C:/BOSTON FLEX/ClassroomOS/cbf-planner/src/styles/\"*.css)",
+      "Bash(npx supabase:*)",
+      "Bash(supabase --version)",
+      "Bash(supabase db:*)",
+      "Bash(supabase migration:*)"
     ]
   }
 }
