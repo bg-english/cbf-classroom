@@ -7,8 +7,8 @@ import { getCurrentPeriod, getPeriodProgress } from '../utils/periodUtils'
  */
 export default function TopBar({
   teacher, assignment, plan,
-  onChangeClass, onSignOut, onOpenTools, onOpenWhiteboard, toolsOpen,
-  isFullscreen, onToggleFullscreen, t
+  onChangeClass, onSignOut, onOpenTools, onOpenWhiteboard, onOpenAI,
+  toolsOpen, aiPanelOpen, isFullscreen, onToggleFullscreen, t
 }) {
   const [time, setTime] = useState(new Date())
   const [elapsed, setElapsed] = useState(0)
@@ -64,6 +64,14 @@ export default function TopBar({
           title={t.tools}
         >
           🌐
+        </button>
+
+        <button
+          className={`cc-ai-btn ${aiPanelOpen ? 'cc-ai-active' : ''}`}
+          onClick={onOpenAI}
+          title={t.aiTitle || 'AI Assistant'}
+        >
+          ✦
         </button>
 
         <div className="cc-topbar-clock">

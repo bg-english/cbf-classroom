@@ -1,13 +1,15 @@
 import AperturaDevocional from './AperturaDevocional'
 import SmartBlock from './SmartBlock'
 import BlockRenderer from './blocks/BlockRenderer'
+import VisualRenderer from './VisualRenderer'
 import { analyzeContent } from '../utils/contentAnalyzer'
 
 /** MomentCanvas — renders content for each of the 6 moments. */
 export default function MomentCanvas({
   moment, sectionContent, plan, dayContent, classroomData,
   todayKey, combinedGrade, subject,
-  onNext, onPrev, isFirst, isLast, m3SubStep, t
+  onNext, onPrev, isFirst, isLast, m3SubStep,
+  aiOverlay, onDismissAI, t
 }) {
   const biblicalPrinciple = classroomData?.biblicalPrinciple
     || plan?.content?.objetivo?.principio
@@ -61,6 +63,27 @@ export default function MomentCanvas({
               <BiblicalCloseCard principle={biblicalPrinciple} classroomData={classroomData} t={t} />
             )}
           </>
+        )}
+
+        {/* AI-generated overlay content */}
+        {aiOverlay && (
+          <div className="ai-overlay">
+            <div className="ai-overlay-header">
+              <span className="ai-overlay-badge" style={{ background: moment.color }}>
+                ✦ {t.aiGenerated || 'AI Generated'}
+              </span>
+              <button className="ai-overlay-dismiss" onClick={onDismissAI}>✕</button>
+            </div>
+            {aiOverlay.visual && (
+              <VisualRenderer visual={aiOverlay.visual} accent={moment.color} />
+            )}
+            {aiOverlay.blocks?.length > 0 && (
+              <BlockRenderer blocks={aiOverlay.blocks} accent={moment.color} />
+            )}
+            {aiOverlay.smartBlock && (
+              <SmartBlock block={aiOverlay.smartBlock} />
+            )}
+          </div>
         )}
       </div>
 

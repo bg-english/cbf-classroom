@@ -83,6 +83,19 @@ const strings = {
     changeClass: '🔄 Change class',
     signOut: '↩ Sign out',
 
+    // AI Panel
+    aiTitle: 'AI Assistant',
+    aiPlaceholder: 'What do you need for the class?',
+    aiGenerating: 'Generating...',
+    aiCancel: 'Cancel',
+    aiPreview: 'Preview',
+    aiProject: 'Project to screen',
+    aiRegenerate: 'Regenerate',
+    aiRefine: 'Refine',
+    aiDiscard: 'Discard',
+    aiRefinePrompt: 'How would you like to modify this?',
+    aiGenerated: 'AI Generated',
+
     // Loading
     loading: 'Loading classroom...',
   },
@@ -148,6 +161,19 @@ const strings = {
     enterFullscreen: '⊞ Pantalla completa',
     changeClass: '🔄 Cambiar clase',
     signOut: '↩ Salir',
+
+    // AI Panel
+    aiTitle: 'Asistente IA',
+    aiPlaceholder: '¿Qué necesitas para la clase?',
+    aiGenerating: 'Generando...',
+    aiCancel: 'Cancelar',
+    aiPreview: 'Vista previa',
+    aiProject: 'Proyectar en pantalla',
+    aiRegenerate: 'Regenerar',
+    aiRefine: 'Refinar',
+    aiDiscard: 'Descartar',
+    aiRefinePrompt: '¿Cómo quieres modificar esto?',
+    aiGenerated: 'Generado con IA',
 
     loading: 'Cargando aula...',
   },

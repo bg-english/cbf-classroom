@@ -4,6 +4,7 @@ import MomentCanvas from './MomentCanvas'
 import BoardStrip from './BoardStrip'
 import ToolsPanel from './ToolsPanel'
 import Whiteboard from './Whiteboard'
+import AIPanel from './AIPanel'
 import { getLocale } from '../utils/locale'
 
 /* CBF Didactic Session — 6 moments */
@@ -21,6 +22,8 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   const [m3SubStep, setM3SubStep] = useState(0) // 0 = WBT rules, 1 = section content
   const [toolsOpen, setToolsOpen] = useState(false)
   const [whiteboardOpen, setWhiteboardOpen] = useState(false)
+  const [aiPanelOpen, setAiPanelOpen] = useState(false)
+  const [aiOverlay, setAiOverlay] = useState(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   const { assignment, plan, todayKey, dayContent, combinedGrade } = resolved
@@ -88,11 +91,12 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   }
 
   function handleKey(e) {
-    if (toolsOpen) return
+    if (toolsOpen || aiPanelOpen) return
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goNext() }
     if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev() }
     if (e.key >= '1' && e.key <= '6') setActiveMoment(Number(e.key) - 1)
-    if (e.key === 'Escape' && toolsOpen) setToolsOpen(false)
+    if (e.key === 'Escape') { setToolsOpen(false); setAiPanelOpen(false); setAiOverlay(null) }
+    if (e.key === 'a' || e.key === 'A') { e.preventDefault(); setAiPanelOpen(o => !o) }
     if (e.key === 'F11') { e.preventDefault(); toggleFullscreen() }
   }
 
@@ -115,7 +119,9 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
         onSignOut={onSignOut}
         onOpenTools={() => setToolsOpen(true)}
         onOpenWhiteboard={() => setWhiteboardOpen(true)}
+        onOpenAI={() => setAiPanelOpen(o => !o)}
         toolsOpen={toolsOpen}
+        aiPanelOpen={aiPanelOpen}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
         t={t}
@@ -149,6 +155,23 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
           isFirst={activeMoment === 0}
           isLast={activeMoment === MOMENTS.length - 1}
           m3SubStep={m3SubStep}
+          aiOverlay={aiOverlay}
+          onDismissAI={() => setAiOverlay(null)}
+          t={t}
+        />
+      )}
+
+      {aiPanelOpen && (
+        <AIPanel
+          assignment={assignment}
+          plan={plan}
+          dayContent={dayContent}
+          classroomData={classroomData}
+          moment={moment}
+          combinedGrade={combinedGrade}
+          todayKey={todayKey}
+          onProject={(result) => { setAiOverlay(result); setAiPanelOpen(false) }}
+          onClose={() => setAiPanelOpen(false)}
           t={t}
         />
       )}
