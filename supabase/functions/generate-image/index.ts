@@ -13,6 +13,9 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
+const MAX_RETRIES = 3
+
 /**
  * Builds a classroom-safe prompt for educational image generation.
  * Gemini imagen style guide: flat illustration, no text, safe-for-school.
@@ -98,24 +101,35 @@ Deno.serve(async (req) => {
 
   const fullPrompt = buildPrompt(prompt, context || {})
 
-  // Call Gemini 2.5 Flash Image via generateContent
-  const imageRes = await fetch(`${IMAGE_ENDPOINT}?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
-      generationConfig: { responseModalities: ['IMAGE'] },
-    }),
-  })
+  // Call Gemini 2.5 Flash Image via generateContent (with retry on 429)
+  let imageRes: Response | null = null
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    imageRes = await fetch(`${IMAGE_ENDPOINT}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+        generationConfig: { responseModalities: ['IMAGE'] },
+      }),
+    })
 
-  if (!imageRes.ok) {
-    const err = await imageRes.text()
-    return new Response(JSON.stringify({ error: `Gemini Image error: ${imageRes.status}`, detail: err }), {
+    if (imageRes.status === 429 && attempt < MAX_RETRIES) {
+      const wait = 4000 * Math.pow(2, attempt) // 4s, 8s, 16s
+      console.log(`Gemini 429 rate limited, retry ${attempt + 1}/${MAX_RETRIES} after ${wait}ms`)
+      await sleep(wait)
+      continue
+    }
+    break
+  }
+
+  if (!imageRes!.ok) {
+    const err = await imageRes!.text()
+    return new Response(JSON.stringify({ error: `Gemini Image error: ${imageRes!.status}`, detail: err }), {
       status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
-  const imageData = await imageRes.json()
+  const imageData = await imageRes!.json()
 
   // Extract base64 image from generateContent response
   const parts = imageData?.candidates?.[0]?.content?.parts || []

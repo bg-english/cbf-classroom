@@ -25,6 +25,7 @@ export default function VerseScene({
   planId,
   classDate,
   accentColor,
+  blendTopic,
   t,
 }) {
   const isComic     = type === 'comic'
@@ -41,6 +42,7 @@ export default function VerseScene({
     subject,
     planId,
     classDate,
+    blendTopic,
   })
 
   // For comic: reveal panels one by one on tap.

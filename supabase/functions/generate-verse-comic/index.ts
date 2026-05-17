@@ -57,32 +57,39 @@ async function buildComicScript(
       max_tokens: 700,
       messages: [{
         role:    'user',
-        content: `Create a 3-panel educational illustration script for a ${grade} ${subject} class.
+        content: `Create a 3-panel comic strip that DIRECTLY ILLUSTRATES the content of this biblical verse for ${grade} students.
 
 Biblical verse: "${verseText}" — ${verseRef}
-Lesson topic: "${topic}"
 
-Each panel illustrates a POSITIVE scene related to the verse (no conflict, no danger).
-Panel 1 — A happy classroom or community scene related to the verse theme.
-Panel 2 — Students or children actively practicing the verse value (helping, learning, sharing, etc).
-Panel 3 — A joyful outcome showing the blessing of living the verse.
+Your job is to create a VISUAL STORY that shows what the verse LITERALLY describes or teaches.
+The images must clearly connect to the verse so students understand its meaning by looking at the comic.
 
-IMPORTANT rules for scene descriptions:
+Panel 1 — Set the scene: illustrate the situation or context the verse describes.
+Panel 2 — Show the action or teaching of the verse happening.
+Panel 3 — Show the result or blessing described in the verse.
+
+CRITICAL: The scenes must illustrate THIS SPECIFIC VERSE, not generic school scenes.
+- If the verse talks about "light", show light/lamp/sun imagery.
+- If the verse talks about "love your neighbor", show people helping each other.
+- If the verse talks about "a shepherd", show a shepherd with sheep.
+- If the verse talks about "planting seeds", show someone planting and harvesting.
+- ALWAYS connect the visual directly to the verse's actual words and meaning.
+
+Rules for scene descriptions:
 - Describe ONLY what is VISIBLE: people, objects, colors, setting, actions.
-- Example: "Three smiling children sitting at a desk sharing school supplies, bright classroom, sunny window"
-- NO abstract concepts, NO emotions described, NO narrative language.
+- Example: "A shepherd in a green field holding a small lamb, flock of sheep behind him, blue sky, warm sunlight"
+- NO abstract concepts, NO emotions as words, NO narrative language.
 - NO words like: temptation, challenge, struggle, conflict, darkness, sin, fear.
-- Characters: diverse happy students, teachers, families.
-- Settings: classroom, playground, park, church, home.
-- Keep each scene description under 30 words.
+- All scenes must be POSITIVE, warm, and safe for children.
+- Keep each scene description under 40 words. Be SPECIFIC and DETAILED.
 
-Captions: short English phrase (max 8 words), present tense.
+Captions: short English phrase (max 8 words) that quotes or paraphrases the verse.
 
 Respond ONLY with valid JSON:
 {
-  "theme": "one-word English theme",
+  "theme": "one-word English theme from the verse",
   "panels": [
-    { "scene": "visible objects and people description only", "caption": "short caption" },
+    { "scene": "detailed visual description directly from the verse content", "caption": "verse-related caption" },
     { "scene": "...", "caption": "..." },
     { "scene": "...", "caption": "..." }
   ]
@@ -95,6 +102,70 @@ Respond ONLY with valid JSON:
   const text: string = data.content?.[0]?.text || ''
   const match = text.match(/\{[\s\S]*\}/)
   if (!match) throw new Error('Claude returned no JSON for comic script')
+  return JSON.parse(match[0])
+}
+
+// ── Claude: blended comic script (verse + lesson topic) ─────────────────────
+
+async function buildBlendedComicScript(
+  verseText: string, verseRef: string,
+  topic: string, grade: string, subject: string
+): Promise<{ theme: string; panels: { scene: string; caption: string }[] }> {
+
+  const res = await fetch(ANTHROPIC_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'x-api-key':        ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type':     'application/json',
+    },
+    body: JSON.stringify({
+      model:      'claude-haiku-4-5-20251001',
+      max_tokens: 700,
+      messages: [{
+        role:    'user',
+        content: `Create a 3-panel comic strip for ${grade} ${subject} students that CONNECTS a biblical verse to the lesson topic.
+
+Biblical verse: "${verseText}" — ${verseRef}
+Lesson topic: "${topic}"
+
+The comic must show HOW the verse's teaching applies to or connects with the lesson topic "${topic}".
+
+Panel 1 — Show a scene related to the lesson topic "${topic}" (students learning, exploring, or working on it).
+Panel 2 — Show the biblical verse's teaching being lived or applied in the context of "${topic}".
+Panel 3 — Show the positive outcome when the verse's wisdom is applied to the topic — students succeeding, understanding, or growing.
+
+CRITICAL: Both the verse content AND the topic "${topic}" must be VISUALLY PRESENT in the scenes.
+- If the topic is "plants" and the verse talks about "bearing fruit", show students growing plants that bear fruit as a metaphor.
+- If the topic is "math" and the verse talks about "wisdom", show students solving math with joy and discovery.
+- The images must make the CONNECTION between verse and topic OBVIOUS to students.
+
+Rules for scene descriptions:
+- Describe ONLY what is VISIBLE: people, objects, colors, setting, actions.
+- NO abstract concepts, NO emotions as words, NO narrative language.
+- NO words like: temptation, challenge, struggle, conflict, darkness, sin, fear.
+- All scenes must be POSITIVE, warm, and safe for children.
+- Keep each scene description under 40 words. Be SPECIFIC and DETAILED.
+
+Captions: short English phrase (max 8 words) connecting verse and topic.
+
+Respond ONLY with valid JSON:
+{
+  "theme": "one-word theme bridging verse and topic",
+  "panels": [
+    { "scene": "detailed visual description connecting verse and topic", "caption": "bridge caption" },
+    { "scene": "...", "caption": "..." },
+    { "scene": "...", "caption": "..." }
+  ]
+}`,
+      }],
+    }),
+  })
+
+  const data = await res.json()
+  const text: string = data.content?.[0]?.text || ''
+  const match = text.match(/\{[\s\S]*\}/)
+  if (!match) throw new Error('Claude returned no JSON for blended comic script')
   return JSON.parse(match[0])
 }
 
@@ -247,7 +318,7 @@ Deno.serve(async (req) => {
     type = 'comic',
     verseText, verseRef = '', verseType = 'verse_comic',
     topic = 'the lesson', grade = 'K-12', subject = 'class',
-    planId, classDate,
+    planId, classDate, blendTopic = false,
   } = body
 
   if (!verseText) return json({ error: 'verseText is required' }, 400)
@@ -262,7 +333,9 @@ Deno.serve(async (req) => {
   // ── Script-only mode (no images) ─────────────────────────────────────────
   // Returns panel descriptions + captions so the frontend can generate
   // images individually via generate-image (faster, progressive UX).
-  const script = await buildComicScript(verseText, verseRef, topic, grade, subject)
+  const script = blendTopic
+    ? await buildBlendedComicScript(verseText, verseRef, topic, grade, subject)
+    : await buildComicScript(verseText, verseRef, topic, grade, subject)
   if (!script.panels?.length) return json({ error: 'Failed to generate comic script' }, 502)
 
   return json({ panels: script.panels, theme: script.theme })

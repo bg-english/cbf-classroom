@@ -42,6 +42,7 @@ export default function AperturaDevocional({
       planId={planId}
       classDate={classDate}
       accentColor={accentColor}
+      blendTopic={currentScene.blendTopic || false}
       t={t}
     />
   )
@@ -93,10 +94,22 @@ export function buildM1Scenes({ classroomData, plan, dayContent, t }) {
     })
   }
 
-  // 4 — Indicator verse → questions
+  // 4a — Indicator verse → comic (verse + lesson topic blended)
   const indicatorText = classroomData?.biblicalPrinciple
     || plan?.content?.objetivo?.principio
     || null
+  if (indicatorText) {
+    scenes.push({
+      type:      'comic',
+      verseType: 'indicator_comic',
+      badge:     t?.principleIndicator || 'Principio Bíblico del Indicador',
+      verseText: indicatorText,
+      verseRef:  classroomData?.indicatorVerseRef || '',
+      blendTopic: true,  // signals: mix verse + lesson topic in images
+    })
+  }
+
+  // 4b — Indicator verse → discussion questions
   if (indicatorText) {
     scenes.push({
       type:      'questions',

@@ -29,6 +29,7 @@ export function useVerseComic({
   subject,
   planId,
   classDate,
+  blendTopic = false,
 }) {
   const [panels,    setPanels]    = useState(null)   // [{imageUrl, caption}]
   const [questions, setQuestions] = useState(null)
@@ -99,6 +100,8 @@ export function useVerseComic({
     }
   }
 
+  const delay = (ms) => new Promise(r => setTimeout(r, ms))
+
   // ── Comic generation — two phases ─────────────────────────────────────────
 
   async function generateComic() {
@@ -118,7 +121,7 @@ export function useVerseComic({
           type: 'comic',
           verseText, verseRef: verseRef || '', verseType: verseType || 'verse_comic',
           topic: topic || 'the lesson', grade: grade || 'K-12', subject: subject || 'class',
-          planId, classDate,
+          planId, classDate, blendTopic,
         }),
       })
       const data = await res.json()
@@ -142,6 +145,9 @@ export function useVerseComic({
     const finalPanels = [...initialPanels]
 
     for (let i = 0; i < scriptPanels.length; i++) {
+      // Delay between calls to avoid Gemini 429 rate limiting
+      if (i > 0) await delay(5000)
+
       try {
         const session = await getSession()
 
@@ -152,7 +158,9 @@ export function useVerseComic({
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
           body: JSON.stringify({
             prompt: scriptPanels[i].scene,
-            context: { topic: topic || 'lesson', grade: grade || 'K-12' },
+            context: blendTopic
+              ? { topic: topic || 'lesson', grade: grade || 'K-12' }
+              : { grade: grade || 'K-12' },
           }),
         })
         const imgData = await res.json()
