@@ -7,6 +7,7 @@ import Whiteboard from './Whiteboard'
 import AIPanel from './AIPanel'
 import AssetBrowser from './AssetBrowser'
 import GamesPanel from './GamesPanel'
+import ClassLibrary from './ClassLibrary'
 import VerseSpotlight from './VerseSpotlight'
 import { buildM1Scenes } from './AperturaDevocional'
 import { playNext, playPrev, playVerse } from '../utils/sounds'
@@ -35,6 +36,7 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
   const [assetBrowserOpen, setAssetBrowserOpen] = useState(false)
   const [gamesPanelOpen, setGamesPanelOpen] = useState(false)
+  const [libraryOpen, setLibraryOpen] = useState(false)
   const [aiOverlay, setAiOverlay] = useState(null)
   const [assetOverlay, setAssetOverlay] = useState(null)
   const [videoOverlay, setVideoOverlay] = useState(null)
@@ -169,11 +171,13 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
         onOpenWhiteboard={() => { setWhiteboardOpen(true); setSidebarOpen(false) }}
         onOpenAI={() => { setAiPanelOpen(o => !o); setGamesPanelOpen(false); setAssetBrowserOpen(false); setSidebarOpen(false) }}
         onOpenAssets={() => { setAssetBrowserOpen(o => !o); setAiPanelOpen(false); setGamesPanelOpen(false); setSidebarOpen(false) }}
-        onOpenGames={() => { setGamesPanelOpen(o => !o); setAiPanelOpen(false); setAssetBrowserOpen(false); setSidebarOpen(false) }}
+        onOpenGames={() => { setGamesPanelOpen(o => !o); setAiPanelOpen(false); setAssetBrowserOpen(false); setLibraryOpen(false); setSidebarOpen(false) }}
+        onOpenLibrary={() => { setLibraryOpen(o => !o); setGamesPanelOpen(false); setAiPanelOpen(false); setAssetBrowserOpen(false); setSidebarOpen(false) }}
         assetBrowserOpen={assetBrowserOpen}
         toolsOpen={toolsOpen}
         aiPanelOpen={aiPanelOpen}
         gamesPanelOpen={gamesPanelOpen}
+        libraryOpen={libraryOpen}
         soundEnabled={soundEnabled}
         onToggleSound={() => setSoundEnabled(s => !s)}
         isFullscreen={isFullscreen}
@@ -273,6 +277,10 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
           isEn={isEnglishSubject(assignment?.subject)}
           onClose={() => setGamesPanelOpen(false)}
         />
+      )}
+
+      {libraryOpen && (
+        <ClassLibrary onClose={() => setLibraryOpen(false)} />
       )}
 
       {verseSpotlight && (
