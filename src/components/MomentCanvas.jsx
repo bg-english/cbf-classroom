@@ -9,6 +9,7 @@ export default function MomentCanvas({
   moment, sectionContent, plan, dayContent, classroomData,
   todayKey, combinedGrade, subject,
   onNext, onPrev, isFirst, isLast, m3SubStep,
+  moments, activeMoment, onSetMoment,
   aiOverlay, onDismissAI, videoOverlay, onDismissVideo,
   transitionKey, transitionDir,
   onVerseSpotlight,
@@ -126,7 +127,7 @@ export default function MomentCanvas({
         )}
       </div>
 
-      {/* Navigation */}
+      {/* Navigation — prev | dots + grade | next */}
       <div className="cc-canvas-nav">
         <button
           className="cc-nav-btn cc-nav-prev"
@@ -136,13 +137,24 @@ export default function MomentCanvas({
           {t.prev}
         </button>
 
-        <div className="cc-canvas-plan-info">
-          {plan ? (
-            <span className="cc-plan-label">
-              {plan.date_range || `Semana ${plan.week_number}`}
-            </span>
-          ) : (
-            <span className="cc-plan-label cc-plan-none">{t.noGuide}</span>
+        <div className="cc-nav-center">
+          {moments && (
+            <nav className="cc-moment-dots">
+              {moments.map((m, i) => (
+                <button
+                  key={m.id}
+                  className={`cc-dot${activeMoment === i ? ' active' : ''}${i < activeMoment ? ' done' : ''}`}
+                  style={{ '--dot-color': m.color }}
+                  onClick={() => onSetMoment?.(i)}
+                  title={m.label}
+                >
+                  {m.id}
+                </button>
+              ))}
+            </nav>
+          )}
+          {combinedGrade && (
+            <span className="cc-bottom-grade">{combinedGrade}</span>
           )}
         </div>
 

@@ -193,6 +193,9 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
             isFirst={activeMoment === 0}
             isLast={activeMoment === MOMENTS.length - 1}
             m3SubStep={m3SubStep}
+            moments={MOMENTS}
+            activeMoment={activeMoment}
+            onSetMoment={(i) => { setToolsOpen(false); setActiveMoment(i) }}
             aiOverlay={aiOverlay}
             onDismissAI={() => setAiOverlay(null)}
             videoOverlay={videoOverlay}
@@ -235,24 +238,6 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
       )}
 
       {whiteboardOpen && <Whiteboard onClose={() => setWhiteboardOpen(false)} />}
-
-      {/* Bottom bar: moment dots + grade */}
-      <footer className="cc-bottom-bar">
-        <nav className="cc-moment-dots">
-          {MOMENTS.map((m, i) => (
-            <button
-              key={m.id}
-              className={`cc-dot${activeMoment === i ? ' active' : ''}${i < activeMoment ? ' done' : ''}`}
-              style={{ '--dot-color': m.color }}
-              onClick={() => { setToolsOpen(false); setActiveMoment(i) }}
-              title={m.label}
-            >
-              {m.id}
-            </button>
-          ))}
-        </nav>
-        <span className="cc-bottom-grade">{combinedGrade}</span>
-      </footer>
     </div>
   )
 }
