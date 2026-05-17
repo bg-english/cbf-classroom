@@ -128,7 +128,7 @@ function HomeworkBlock({ data, accent }) {
     <div className="br-homework" style={{ '--block-accent': accent }}>
       <div className="br-block-header">
         <span className="br-block-icon">📝</span>
-        <span className="br-block-label">Tarea</span>
+        <span className="br-block-label">Assignment</span>
         {data.dueLabel && <span className="br-hw-date">📅 {data.dueLabel}</span>}
       </div>
       {data.instruction && <p className="br-hw-instruction">{data.instruction}</p>}

@@ -447,9 +447,9 @@ function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject,
 }
 
 /**
- * WBTBanner — Momento 3 (Motivación)
- * ABC paso 4: "Menciona las reglas de la clase (Whole Brain Teaching)"
- * ABC paso 5: "Pre-conocimiento - Conexión temática"
+ * WBTBanner — Momento 3 (Motivation)
+ * Ice-breaker to create engagement · Biblical verse reminder · Activate prior knowledge
+ * Note: Class rules are now stated in TOPICS (Momento 1), not here.
  */
 function WBTBanner() {
   return (
@@ -476,9 +476,9 @@ function WBTBanner() {
 }
 
 /**
- * BiblicalMidCard — Momento 4 (Desarrollo)
- * ABC: "Explica el principio bíblico del mes por 5 minutos
- *       y habla nuevamente de él antes de finalizar tu clase"
+ * BiblicalMidCard — Momento 4 (Skill Development)
+ * The biblical verse MUST connect with the content/activity.
+ * This is the verse connection point (MOTIVATION=reminder → here=connection → CLOSING=reflection)
  */
 function BiblicalMidCard({ principle, classroomData }) {
   return (
@@ -498,15 +498,15 @@ function BiblicalMidCard({ principle, classroomData }) {
 }
 
 /**
- * BiblicalCloseCard — Momento 5 (Cierre)
- * ABC: "Conecta el aprendizaje del día con el principio bíblico como cierre natural"
- * Cosmovisión: "Presenta el principio bíblico durante el inicio, desarrollo y CIERRE"
+ * BiblicalCloseCard — Momento 6 (Closing)
+ * Biblical verse reflection — completes the thread: MOTIVATION → SKILL → CLOSING
+ * "How does [principle] change your view of [topic]?"
  */
 function BiblicalCloseCard({ principle, classroomData }) {
   return (
     <div className="bib-card bib-card-close">
       <div className="bib-card-badge">
-        <span>✝</span> Cierre Bíblico
+        <span>✝</span> Biblical Closing Reflection
       </div>
       <p className="bib-card-prompt">
         Conecta el aprendizaje de hoy con el principio bíblico como cierre natural de la clase.
@@ -520,10 +520,10 @@ function BiblicalCloseCard({ principle, classroomData }) {
 }
 
 const MOMENT_ICONS = {
-  1: '✝',   // Encuentro — principio bíblico + vocab
-  2: '🗒',  // Tema del Día — tablero
-  3: '⚡',  // Motivación — pre-conocimiento + WBT
-  4: '🎯',  // Desarrollo — habilidad del día
-  5: '🚪',  // Cierre — verificación + reflexión
-  6: '📝',  // Tarea — assignment
+  1: '✝',   // Topics — biblical principle + vocab + class rules
+  2: '🗒',  // Subject to be Worked — board ritual
+  3: '⚡',  // Motivation — engagement + verse reminder
+  4: '🎯',  // Skill Development — main activity + verse connection
+  5: '📝',  // Assignment — optional in-class task
+  6: '🚪',  // Closing — recap + feelings + verse reflection
 }

@@ -6,25 +6,26 @@ import ToolsPanel from './ToolsPanel'
 import Whiteboard from './Whiteboard'
 
 /*
- * ABC del Encuentro Académico — Boston Flex Methodological Approach 2026
- * Orden y nombres alineados con la fuente oficial (pp. 58-59):
+ * CBF Didactic Session — Boston Flex Methodological Approach 2026
+ * Definitive order (aligned with cbf-planner constants.js):
  *
- *  1 Encuentro   — coral:   saludo, vocab list, principio bíblico
- *  2 Tema del Día — teal:   tablero (fecha · tema · objetivo · principio)
- *  3 Motivación  — green:   WBT rules + pre-conocimiento + conexión temática
- *  4 Desarrollo  — violet:  habilidad del día, modelado, práctica
- *  5 Cierre      — amber:   verificación + reflexión bíblica
- *  6 Tarea       — sky-blue: Weekly Challenge / Assignment
+ *  1 Topics              — coral:   topics, contents, class rules, biblical principle
+ *  2 Subject to be Worked — teal:   board ritual (date · topic · objective · principle)
+ *  3 Motivation          — green:   ice-breaker, engagement, biblical verse reminder
+ *  4 Skill Development   — violet:  main activity, verse connection, concrete evidence
+ *  5 Assignment          — sky-blue: optional in-class assignment (never homework)
+ *  6 Closing             — amber:   recap, feelings, difficulties, biblical reflection
  *
+ * Biblical verse permeates: MOTIVATION (reminder) → SKILL (connection) → CLOSING (reflection)
  * Colores: WCAG AA sobre texto blanco (#fff), visibles a 5m+ en pantalla 55"-100".
  */
 const MOMENTS = [
-  { id: 1, key: 'subject',    label: 'Encuentro',    color: '#dc2626', section: 'subject',    abc: 'Saluda a presenciales y virtuales · Presenta Vocabulary List · Anuncia el Principio Bíblico del mes' },
-  { id: 2, key: 'motivation', label: 'Tema del Día', color: '#0891b2', section: 'motivation', abc: 'Escribe en el tablero: Fecha · Tema · Objetivo · Principio Bíblico · No borrar durante la clase' },
-  { id: 3, key: 'activity',   label: 'Motivación',   color: '#16a34a', section: 'activity',   abc: 'Menciona Reglas WBT · Pre-conocimiento: conecta con la clase anterior · Activa saberes previos' },
-  { id: 4, key: 'skill',      label: 'Desarrollo',   color: '#7c3aed', section: 'skill',      abc: 'Desarrolla la habilidad del día · Modela y practica · Explica el Principio Bíblico (5 min) · Recuerda la ES y la rúbrica' },
-  { id: 5, key: 'closing',    label: 'Cierre',       color: '#d97706', section: 'closing',    abc: 'Verifica asimilación con preguntas · Conecta el aprendizaje con el Principio Bíblico como cierre natural' },
-  { id: 6, key: 'assignment', label: 'Tarea',        color: '#2563eb', section: 'assignment', abc: 'Asigna tarea concreta y alcanzable · Virtual Campus / Flex App · Preparación para la siguiente clase' },
+  { id: 1, key: 'subject',    label: 'Topics',              color: '#dc2626', section: 'subject',    abc: 'Present topics, contents, and syllabus items · State class rules · Announce Biblical Principle of the month' },
+  { id: 2, key: 'motivation', label: 'Subject to be Worked', color: '#0891b2', section: 'motivation', abc: 'Board ritual: Date · Topic · Objective · Biblical Principle · Do NOT erase during the class' },
+  { id: 3, key: 'activity',   label: 'Motivation',          color: '#16a34a', section: 'activity',   abc: 'Ice-breaker to create engagement · Remind biblical verse · Activate prior knowledge · Bridge to new content' },
+  { id: 4, key: 'skill',      label: 'Skill Development',   color: '#7c3aed', section: 'skill',      abc: 'Main activity · Students already engaged · Connect content with biblical verse · Student produces concrete evidence' },
+  { id: 5, key: 'assignment', label: 'Assignment',          color: '#2563eb', section: 'assignment', abc: 'Optional in-class assignment · Never homework sent home · Concrete and achievable' },
+  { id: 6, key: 'closing',    label: 'Closing',             color: '#d97706', section: 'closing',    abc: 'Recap what was learned · Ask how they felt · Identify difficulties · Biblical verse reflection as closure' },
 ]
 
 export default function ClassroomFrame({ teacher, resolved, classroomData, onChangeClass, onSignOut }) {

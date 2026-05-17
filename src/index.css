@@ -1743,7 +1743,7 @@ a { color: var(--accent); text-decoration: none; }
 }
 
 /* =========================================================
-   M2 TEMA DEL DÍA — tablero prominente
+   M2 SUBJECT TO BE WORKED — board ritual
    ========================================================= */
 .m2-container {
   max-width: clamp(620px, 72vw, 1100px);
@@ -1826,7 +1826,7 @@ a { color: var(--accent); text-decoration: none; }
 .m2-field-principle .m2-value { color: #2d5218; }
 
 /* =========================================================
-   WBT BANNER — Momento 3 (Motivación)
+   WBT BANNER — Momento 3 (Motivation)
    ========================================================= */
 .wbt-banner {
   max-width: clamp(620px, 72vw, 1000px);
