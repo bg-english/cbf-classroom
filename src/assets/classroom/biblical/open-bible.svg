@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="24" fill="#2563eb" fill-opacity="0.08"/>
+  <!-- Left page -->
+  <path d="M60 32 Q44 28 28 32 L28 90 Q44 86 60 90 Z" fill="#2563eb" fill-opacity="0.12" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Right page -->
+  <path d="M60 32 Q76 28 92 32 L92 90 Q76 86 60 90 Z" fill="#2563eb" fill-opacity="0.08" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Spine -->
+  <line x1="60" y1="32" x2="60" y2="90" stroke="#2563eb" stroke-width="3"/>
+  <!-- Lines on left page -->
+  <line x1="34" y1="48" x2="54" y2="46" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+  <line x1="34" y1="56" x2="54" y2="54" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+  <line x1="34" y1="64" x2="54" y2="62" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+  <line x1="34" y1="72" x2="50" y2="70" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+  <!-- Cross on right page -->
+  <line x1="76" y1="50" x2="76" y2="76" stroke="#2563eb" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+  <line x1="64" y1="60" x2="88" y2="60" stroke="#2563eb" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+</svg>
