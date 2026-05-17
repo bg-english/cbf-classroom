@@ -1563,6 +1563,111 @@ a { color: var(--accent); text-decoration: none; }
 .sb-rubric-total strong { color: var(--accent); font-size: var(--text-lg); }
 
 /* =========================================================
+   BOTTOM BAR — moment dots + grade
+   ========================================================= */
+.cc-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 8px 16px;
+  background: var(--bg-800);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 100;
+}
+.cc-moment-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.cc-dot {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border-light);
+  background: var(--bg-700);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  padding: 0;
+}
+.cc-dot.active {
+  background: var(--dot-color);
+  border-color: var(--dot-color);
+  color: #fff;
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.cc-dot.done {
+  background: var(--dot-color);
+  border-color: var(--dot-color);
+  color: #fff;
+  opacity: 0.45;
+}
+.cc-bottom-grade {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   CANVAS ACCENT BAR — thin color stripe
+   ========================================================= */
+.cc-canvas-accent {
+  height: 3px;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   WBT FULL-PAGE RULES — Momento 3 sub-step 0
+   ========================================================= */
+.wbt-fullpage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--canvas-padding);
+}
+.wbt-rules-card {
+  background: var(--bg-800);
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  border-left: 4px solid #16a34a;
+  border-radius: 16px;
+  padding: clamp(28px, 4vw, 56px);
+  max-width: 700px;
+  width: 100%;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+.wbt-rules-heading {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: #15803d;
+  margin-bottom: clamp(16px, 2vh, 28px);
+}
+.wbt-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.2vh, 18px);
+  padding-left: 1.5em;
+  margin: 0;
+}
+.wbt-rule-item {
+  font-size: var(--text-lg);
+  color: var(--text-primary);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* =========================================================
    WHITEBOARD BUTTON — TopBar
    ========================================================= */
 .cc-whiteboard-btn {

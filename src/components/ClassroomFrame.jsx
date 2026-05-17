@@ -6,31 +6,19 @@ import ToolsPanel from './ToolsPanel'
 import Whiteboard from './Whiteboard'
 import { getLocale } from '../utils/locale'
 
-/*
- * CBF Didactic Session — Boston Flex Methodological Approach 2026
- * Definitive order (aligned with cbf-planner constants.js):
- *
- *  1 Topics              — coral:   topics, contents, class rules, biblical principle
- *  2 Subject to be Worked — teal:   board ritual (date · topic · objective · principle)
- *  3 Motivation          — green:   ice-breaker, engagement, biblical verse reminder
- *  4 Skill Development   — violet:  main activity, verse connection, concrete evidence
- *  5 Assignment          — sky-blue: optional in-class assignment (never homework)
- *  6 Closing             — amber:   recap, feelings, difficulties, biblical reflection
- *
- * Biblical verse permeates: MOTIVATION (reminder) → SKILL (connection) → CLOSING (reflection)
- * Colores: WCAG AA sobre texto blanco (#fff), visibles a 5m+ en pantalla 55"-100".
- */
+/* CBF Didactic Session — 6 moments */
 const MOMENTS = [
-  { id: 1, key: 'subject',    label: 'Topics',              color: '#dc2626', section: 'subject',    abc: 'Present topics, contents, and syllabus items · State class rules · Announce Biblical Principle of the month' },
-  { id: 2, key: 'motivation', label: 'Subject to be Worked', color: '#0891b2', section: 'motivation', abc: 'Board ritual: Date · Topic · Objective · Biblical Principle · Do NOT erase during the class' },
-  { id: 3, key: 'activity',   label: 'Motivation',          color: '#16a34a', section: 'activity',   abc: 'Ice-breaker to create engagement · Remind biblical verse · Activate prior knowledge · Bridge to new content' },
-  { id: 4, key: 'skill',      label: 'Skill Development',   color: '#7c3aed', section: 'skill',      abc: 'Main activity · Students already engaged · Connect content with biblical verse · Student produces concrete evidence' },
-  { id: 5, key: 'assignment', label: 'Assignment',          color: '#2563eb', section: 'assignment', abc: 'Optional in-class assignment · Never homework sent home · Concrete and achievable' },
-  { id: 6, key: 'closing',    label: 'Closing',             color: '#d97706', section: 'closing',    abc: 'Recap what was learned · Ask how they felt · Identify difficulties · Biblical verse reflection as closure' },
+  { id: 1, key: 'subject',    label: 'Topics',              color: '#dc2626', section: 'subject' },
+  { id: 2, key: 'motivation', label: 'Subject to be Worked', color: '#0891b2', section: 'motivation' },
+  { id: 3, key: 'activity',   label: 'Motivation',          color: '#16a34a', section: 'activity' },
+  { id: 4, key: 'skill',      label: 'Skill Development',   color: '#7c3aed', section: 'skill' },
+  { id: 5, key: 'assignment', label: 'Assignment',          color: '#2563eb', section: 'assignment' },
+  { id: 6, key: 'closing',    label: 'Closing',             color: '#d97706', section: 'closing' },
 ]
 
 export default function ClassroomFrame({ teacher, resolved, classroomData, onChangeClass, onSignOut }) {
   const [activeMoment, setActiveMoment] = useState(0)
+  const [m3SubStep, setM3SubStep] = useState(0) // 0 = WBT rules, 1 = section content
   const [toolsOpen, setToolsOpen] = useState(false)
   const [whiteboardOpen, setWhiteboardOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -45,6 +33,9 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
 
   const moment = MOMENTS[activeMoment]
   const sectionContent = dayContent?.sections?.[moment.section] || null
+
+  // Reset M3 sub-step when changing moments
+  useEffect(() => { setM3SubStep(0) }, [activeMoment])
 
   // ── Fullscreen API ──
   const requestFullscreen = useCallback(() => {
@@ -66,7 +57,6 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     }
   }
 
-  // Auto-request fullscreen on mount (requires prior user gesture — works after login click)
   useEffect(() => {
     requestFullscreen()
 
@@ -81,8 +71,21 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     }
   }, [requestFullscreen])
 
-  function goNext() { setActiveMoment(m => Math.min(m + 1, MOMENTS.length - 1)) }
-  function goPrev() { setActiveMoment(m => Math.max(m - 1, 0)) }
+  // Navigation with M3 sub-step support
+  function goNext() {
+    if (activeMoment === 2 && m3SubStep === 0) {
+      setM3SubStep(1)
+    } else {
+      setActiveMoment(m => Math.min(m + 1, MOMENTS.length - 1))
+    }
+  }
+  function goPrev() {
+    if (activeMoment === 2 && m3SubStep === 1) {
+      setM3SubStep(0)
+    } else {
+      setActiveMoment(m => Math.max(m - 1, 0))
+    }
+  }
 
   function handleKey(e) {
     if (toolsOpen) return
@@ -93,7 +96,6 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     if (e.key === 'F11') { e.preventDefault(); toggleFullscreen() }
   }
 
-  // Board strip props — shared between BoardStrip instances
   const boardProps = {
     todayKey,
     dayContent,
@@ -103,21 +105,12 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
     combinedGrade,
   }
 
-  // NON-NEGOTIABLE: Board (Date · Topic · Objective · Biblical Principle) is ALWAYS visible.
-  // It NEVER disappears during the class — this is the anchor of the biblical verse thread.
-  const showBoardStrip = true
-
   return (
     <div className="cc-frame" tabIndex={0} onKeyDown={handleKey} style={{ outline: 'none' }}>
       <TopBar
         teacher={teacher}
         assignment={assignment}
-        combinedGrade={combinedGrade}
         plan={plan}
-        todayKey={todayKey}
-        moments={MOMENTS}
-        activeMoment={activeMoment}
-        onSelectMoment={(i) => { setToolsOpen(false); setActiveMoment(i) }}
         onChangeClass={onChangeClass}
         onSignOut={onSignOut}
         onOpenTools={() => setToolsOpen(true)}
@@ -128,7 +121,7 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
         t={t}
       />
 
-      {showBoardStrip && <BoardStrip {...boardProps} t={t} />}
+      <BoardStrip {...boardProps} t={t} />
 
       {toolsOpen ? (
         <ToolsPanel onClose={() => setToolsOpen(false)} />
@@ -155,11 +148,30 @@ export default function ClassroomFrame({ teacher, resolved, classroomData, onCha
           onPrev={goPrev}
           isFirst={activeMoment === 0}
           isLast={activeMoment === MOMENTS.length - 1}
+          m3SubStep={m3SubStep}
           t={t}
         />
       )}
 
       {whiteboardOpen && <Whiteboard onClose={() => setWhiteboardOpen(false)} />}
+
+      {/* Bottom bar: moment dots + grade */}
+      <footer className="cc-bottom-bar">
+        <nav className="cc-moment-dots">
+          {MOMENTS.map((m, i) => (
+            <button
+              key={m.id}
+              className={`cc-dot${activeMoment === i ? ' active' : ''}${i < activeMoment ? ' done' : ''}`}
+              style={{ '--dot-color': m.color }}
+              onClick={() => { setToolsOpen(false); setActiveMoment(i) }}
+              title={m.label}
+            >
+              {m.id}
+            </button>
+          ))}
+        </nav>
+        <span className="cc-bottom-grade">{combinedGrade}</span>
+      </footer>
     </div>
   )
 }

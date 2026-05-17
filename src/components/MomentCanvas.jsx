@@ -3,16 +3,11 @@ import SmartBlock from './SmartBlock'
 import BlockRenderer from './blocks/BlockRenderer'
 import { analyzeContent } from '../utils/contentAnalyzer'
 
-/**
- * MomentCanvas — renders the appropriate content for each of the 6 moments.
- *
- * Momento 1 (Apertura): AperturaDevocional — versículos + tablero digital
- * Momentos 2–6: HTML content + smartBlocks + media from lesson_plan sections
- */
+/** MomentCanvas — renders content for each of the 6 moments. */
 export default function MomentCanvas({
   moment, sectionContent, plan, dayContent, classroomData,
   todayKey, combinedGrade, subject,
-  onNext, onPrev, isFirst, isLast, t
+  onNext, onPrev, isFirst, isLast, m3SubStep, t
 }) {
   const biblicalPrinciple = classroomData?.biblicalPrinciple
     || plan?.content?.objetivo?.principio
@@ -21,21 +16,8 @@ export default function MomentCanvas({
   return (
     <main className="cc-canvas" style={{ '--moment-color': moment.color }}>
 
-      {/* Moment header */}
-      <div className="cc-canvas-header">
-        <div className="cc-canvas-moment-badge" style={{ background: moment.color }}>
-          Momento {moment.id}
-        </div>
-        <h2 className="cc-canvas-moment-title">{moment.label}</h2>
-        {sectionContent?.time && (
-          <span className="cc-canvas-time">⏱ {sectionContent.time}</span>
-        )}
-        {moment.abc && (
-          <div className="cc-abc-hint" style={{ '--abc-color': moment.color }}>
-            {moment.abc}
-          </div>
-        )}
-      </div>
+      {/* Minimal accent bar — moment color only */}
+      <div className="cc-canvas-accent" style={{ background: moment.color }} />
 
       {/* Content area */}
       <div className="cc-canvas-content">
@@ -61,9 +43,10 @@ export default function MomentCanvas({
             sectionContent={sectionContent}
             t={t}
           />
+        ) : moment.id === 3 && m3SubStep === 0 ? (
+          <WBTRules t={t} />
         ) : (
           <>
-            {moment.id === 3 && <WBTBanner t={t} />}
             <SectionContent
               moment={moment}
               sectionContent={sectionContent}
@@ -114,10 +97,7 @@ export default function MomentCanvas({
   )
 }
 
-/**
- * SectionContent — renders HTML content + smartBlocks + media for moments 2–6.
- * Uses contentAnalyzer to auto-detect the best layout for the HTML content.
- */
+/** SectionContent — renders HTML + smartBlocks + media. */
 function SectionContent({ moment, sectionContent, plan, dayContent, t }) {
   const hasBlocks      = sectionContent?.blocks?.length > 0
   const hasContent     = sectionContent?.content && sectionContent.content !== '<p></p>'
@@ -218,9 +198,7 @@ function SectionContent({ moment, sectionContent, plan, dayContent, t }) {
   )
 }
 
-/**
- * ContentLayout — selecciona el componente de layout según el análisis.
- */
+/** ContentLayout — picks layout based on content analysis. */
 function ContentLayout({ analysis, html, moment, images, imageLayout }) {
   const accent = moment.color
 
@@ -383,11 +361,7 @@ function MediaVideo({ video }) {
   )
 }
 
-/**
- * M2TemaDia — Momento 2 (Tema del Día)
- * El tablero ES el contenido principal de este momento (ABC paso 2).
- * "Escribe en el tablero... no borrar durante la clase."
- */
+/** M2TemaDia — Momento 2: board ritual (date · topic · objective · principle). */
 function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject, classroomData, sectionContent, t }) {
   const dateLabel = todayKey
     ? new Date(todayKey + 'T12:00:00').toLocaleDateString('es-CO', {
@@ -451,35 +425,25 @@ function M2TemaDia({ moment, plan, dayContent, todayKey, combinedGrade, subject,
 }
 
 /**
- * WBTBanner — Momento 3 (Motivation)
- * Ice-breaker to create engagement · Biblical verse reminder · Activate prior knowledge
- * Note: Class rules are now stated in TOPICS (Momento 1), not here.
+ * WBTRules — full-page class rules display (M3 sub-step 0).
+ * Teacher clicks Next to proceed to the motivation content.
  */
-function WBTBanner({ t }) {
+function WBTRules({ t }) {
   return (
-    <div className="wbt-banner">
-      <div className="wbt-section">
-        <span className="wbt-icon">🧠</span>
-        <div className="wbt-text">
-          <span className="wbt-title">{t.wbtTitle}</span>
-          <div className="wbt-rules">
-            {t.wbtRules.map((rule, i) => <span key={i}>{rule}</span>)}
-          </div>
-        </div>
-      </div>
-      <div className="wbt-precon">
-        <span className="wbt-precon-icon">🔄</span>
-        <span><strong>{t.priorKnowledge}</strong> {t.priorKnowledgeQ}</span>
+    <div className="wbt-fullpage">
+      <div className="wbt-rules-card">
+        <h2 className="wbt-rules-heading">{t.wbtTitle}</h2>
+        <ol className="wbt-rules-list">
+          {t.wbtRules.map((rule, i) => (
+            <li key={i} className="wbt-rule-item">{rule}</li>
+          ))}
+        </ol>
       </div>
     </div>
   )
 }
 
-/**
- * BiblicalMidCard — Momento 4 (Skill Development)
- * The biblical verse MUST connect with the content/activity.
- * This is the verse connection point (MOTIVATION=reminder → here=connection → CLOSING=reflection)
- */
+/** BiblicalMidCard — verse connection (Momento 4). */
 function BiblicalMidCard({ principle, classroomData, t }) {
   return (
     <div className="bib-card bib-card-mid">
@@ -497,11 +461,7 @@ function BiblicalMidCard({ principle, classroomData, t }) {
   )
 }
 
-/**
- * BiblicalCloseCard — Momento 6 (Closing)
- * Biblical verse reflection — completes the thread: MOTIVATION → SKILL → CLOSING
- * "How does [principle] change your view of [topic]?"
- */
+/** BiblicalCloseCard — verse reflection (Momento 6). */
 function BiblicalCloseCard({ principle, classroomData, t }) {
   return (
     <div className="bib-card bib-card-close">
@@ -519,11 +479,4 @@ function BiblicalCloseCard({ principle, classroomData, t }) {
   )
 }
 
-const MOMENT_ICONS = {
-  1: '✝',   // Topics — biblical principle + vocab + class rules
-  2: '🗒',  // Subject to be Worked — board ritual
-  3: '⚡',  // Motivation — engagement + verse reminder
-  4: '🎯',  // Skill Development — main activity + verse connection
-  5: '📝',  // Assignment — optional in-class task
-  6: '🚪',  // Closing — recap + feelings + verse reflection
-}
+const MOMENT_ICONS = { 1: '✝', 2: '🗒', 3: '⚡', 4: '🎯', 5: '📝', 6: '🚪' }

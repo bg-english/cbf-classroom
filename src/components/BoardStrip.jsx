@@ -1,16 +1,4 @@
-/**
- * BoardStrip — persistent compact bar showing class essentials.
- *
- * Board ritual (NEVER erased during class):
- *   1. Date
- *   2. Subject to be worked (topic)
- *   3. Lesson objective
- *   4. Biblical principle of the indicator
- *
- * Always visible in ALL moments and tools mode.
- * The biblical verse permeates the entire session — this bar is its anchor.
- * Never disappears during the class session.
- */
+/** BoardStrip — persistent bar: date · topic · objective · biblical principle. */
 export default function BoardStrip({ todayKey, dayContent, plan, classroomData, subject, combinedGrade, t }) {
   const dateLabel = todayKey
     ? new Date(todayKey + 'T12:00:00').toLocaleDateString('es-CO', {

@@ -2,17 +2,16 @@ import { useState, useEffect, useMemo } from 'react'
 import { getCurrentPeriod, getPeriodProgress } from '../utils/periodUtils'
 
 /**
- * TopBar — always-visible header.
- * Contains: logo · class info · 6 moment pills · tools button · timer · menu
+ * TopBar — minimal header: subject + period (left), clock + tools + menu (right).
+ * Moment navigation moved to bottom dots. Grade moved to bottom center.
  */
 export default function TopBar({
-  teacher, assignment, combinedGrade, plan, todayKey,
-  moments, activeMoment, onSelectMoment,
+  teacher, assignment, plan,
   onChangeClass, onSignOut, onOpenTools, onOpenWhiteboard, toolsOpen,
   isFullscreen, onToggleFullscreen, t
 }) {
   const [time, setTime] = useState(new Date())
-  const [elapsed, setElapsed] = useState(0) // seconds since session start
+  const [elapsed, setElapsed] = useState(0)
   const [sessionStart] = useState(Date.now())
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -37,56 +36,24 @@ export default function TopBar({
     return date.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
   }
 
-  const dateLabel = todayKey
-    ? new Date(todayKey + 'T12:00:00').toLocaleDateString('es-CO', {
-        weekday: 'long', day: 'numeric', month: 'long'
-      })
-    : ''
-
   return (
     <header className="cc-topbar">
-      {/* Left: identity */}
       <div className="cc-topbar-left">
-        <div className="cc-topbar-brand">ETA</div>
-        <div className="cc-topbar-info">
-          <span className="cc-topbar-grade">{combinedGrade}</span>
-          <span className="cc-topbar-subject">{assignment?.subject}</span>
-          <span className="cc-topbar-date">{dateLabel}</span>
-          {period && progress && (
-            <span className="cc-period-badge" title={period.label}>
-              {period.short}
-              {progress.remainingWeeks > 0 && (
-                <span className="cc-period-weeks"> · {progress.remainingWeeks}sem</span>
-              )}
-            </span>
-          )}
-        </div>
+        <span className="cc-topbar-subject">{assignment?.subject}</span>
+        {period && progress && (
+          <span className="cc-period-badge" title={period.label}>
+            {period.short}
+          </span>
+        )}
       </div>
 
-      {/* Center: moment pills */}
-      <nav className="cc-topbar-moments">
-        {moments.map((m, i) => (
-          <button
-            key={m.id}
-            className={`cc-moment-pill${!toolsOpen && activeMoment === i ? ' active' : ''}${!toolsOpen && i < activeMoment ? ' done' : ''}`}
-            style={{ '--moment-color': m.color }}
-            onClick={() => onSelectMoment(i)}
-            title={m.label}
-          >
-            <span className="cc-moment-num">{m.id}</span>
-            <span className="cc-moment-label">{m.label}</span>
-          </button>
-        ))}
-      </nav>
-
-      {/* Right: whiteboard, tools, clock, timer, menu */}
       <div className="cc-topbar-right">
         <button
           className="cc-whiteboard-btn"
           onClick={onOpenWhiteboard}
           title={t.whiteboard}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
           </svg>
         </button>
@@ -108,7 +75,7 @@ export default function TopBar({
           <button
             className="cc-topbar-menu-btn"
             onClick={() => setMenuOpen(o => !o)}
-            aria-label="Menú"
+            aria-label="Menu"
           >
             ⋯
           </button>
