@@ -1,8 +1,28 @@
 import { useEffect, useState } from 'react'
-import { resolveCurrentClass, loadTeacherAssignments } from '../utils/classResolver'
+import { resolveCurrentClass, loadTeacherAssignments, resolvePlanDay } from '../utils/classResolver'
 import { supabase } from '../utils/supabase'
 import ClassPicker from '../components/ClassPicker'
 import ClassroomFrame from '../components/ClassroomFrame'
+
+function getMondayOfDate(dateStr) {
+  const date = new Date(dateStr + 'T12:00:00')
+  const day = date.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  date.setDate(date.getDate() + diff)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function addDays(isoDate, n) {
+  const date = new Date(isoDate + 'T12:00:00')
+  date.setDate(date.getDate() + n)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
 
 export default function ClassroomApp({ session, teacher }) {
   const [resolving, setResolving] = useState(true)
@@ -39,16 +59,24 @@ export default function ClassroomApp({ session, teacher }) {
 
     const { data: plans } = await supabase
       .from('lesson_plans')
-      .select('id, grade, subject, week_number, date_range, content, status, week_count, news_project_id')
+      .select('id, grade, subject, week_number, date_range, content, status, week_count, monday_date, news_project_id')
       .eq('teacher_id', teacher.id)
       .eq('grade', combinedGrade)
       .eq('subject', assignment.subject)
       .order('created_at', { ascending: false })
       .limit(5)
 
-    const plan = plans?.[0] || null
-    const dayContent = plan?.content?.days?.[today] || null
-    const result = { assignment, plan, todayKey: today, dayContent, combinedGrade, scheduleSlot: null }
+    // Match plan by monday_date when possible
+    const mondayOfToday = getMondayOfDate(today)
+    const plan = plans?.find(p => {
+      if (!p.monday_date) return false
+      if (p.monday_date === mondayOfToday) return true
+      if (p.week_count === 2 && addDays(p.monday_date, 7) === mondayOfToday) return true
+      return false
+    }) || plans?.[0] || null
+
+    const { dayContent, dayKey } = resolvePlanDay(plan, today)
+    const result = { assignment, plan, todayKey: dayKey, dayContent, combinedGrade, scheduleSlot: null }
 
     setResolved(result)
     const enriched = await loadEnrichedData(result)

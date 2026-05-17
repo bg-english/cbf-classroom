@@ -88,6 +88,7 @@ export async function resolveCurrentClass(teacher, options = {}) {
     .from('teacher_assignments')
     .select('id, grade, section, subject, schedule')
     .eq('teacher_id', teacher.id)
+    .eq('school_id', teacher.school_id)
 
   if (aErr || !assignments?.length) return null
 
@@ -131,7 +132,7 @@ export async function resolveCurrentClass(teacher, options = {}) {
 
   const { data: plans } = await supabase
     .from('lesson_plans')
-    .select('id, grade, subject, week_number, date_range, content, status, week_count, monday_date')
+    .select('id, grade, subject, week_number, date_range, content, status, week_count, monday_date, news_project_id')
     .eq('teacher_id', teacher.id)
     .eq('grade', combinedGrade)
     .eq('subject', matched.subject)
@@ -147,17 +148,81 @@ export async function resolveCurrentClass(teacher, options = {}) {
     return false
   }) || plans?.[0] || null
 
-  // 5. Get today's content from the plan
-  const dayContent = plan?.content?.days?.[today] || null
+  // 5. Get today's content from the plan (fallback to nearest available day)
+  const dayContent = resolveDayContent(plan, today)
+  const resolvedDayKey = dayContent ? findDayKey(plan, today) : today
 
   return {
     assignment: matched,
     scheduleSlot: matchedSlot,
     plan,
-    todayKey: today,
+    todayKey: resolvedDayKey,
     dayContent,
     combinedGrade,
   }
+}
+
+/**
+ * Public helper: resolve day content + key from a plan for a given date.
+ * Used by ClassroomApp.handlePickClass.
+ */
+export function resolvePlanDay(plan, today) {
+  const dayContent = resolveDayContent(plan, today)
+  const dayKey = dayContent ? findDayKey(plan, today) : today
+  return { dayContent, dayKey }
+}
+
+/**
+ * Resolve day content from a plan: try exact date first, then fallback to
+ * the nearest available day in the plan (handles weekends, wrong-week fallback, etc.)
+ */
+function resolveDayContent(plan, today) {
+  if (!plan?.content?.days) return null
+  const days = plan.content.days
+
+  // Exact match
+  if (days[today]) return days[today]
+
+  // Fallback: find the nearest day (prefer same weekday, then closest date)
+  const availableDays = Object.keys(days).filter(k => days[k]?.active !== false).sort()
+  if (!availableDays.length) return null
+
+  // Try same weekday in the plan
+  const todayDow = new Date(today + 'T12:00:00').getDay()
+  const sameDow = availableDays.find(d => new Date(d + 'T12:00:00').getDay() === todayDow)
+  if (sameDow) return days[sameDow]
+
+  // Otherwise pick the closest date
+  const todayMs = new Date(today + 'T12:00:00').getTime()
+  availableDays.sort((a, b) =>
+    Math.abs(new Date(a + 'T12:00:00').getTime() - todayMs) -
+    Math.abs(new Date(b + 'T12:00:00').getTime() - todayMs)
+  )
+  return days[availableDays[0]]
+}
+
+/**
+ * Find the actual day key used (for display purposes)
+ */
+function findDayKey(plan, today) {
+  if (!plan?.content?.days) return today
+  const days = plan.content.days
+
+  if (days[today]) return today
+
+  const availableDays = Object.keys(days).filter(k => days[k]?.active !== false).sort()
+  if (!availableDays.length) return today
+
+  const todayDow = new Date(today + 'T12:00:00').getDay()
+  const sameDow = availableDays.find(d => new Date(d + 'T12:00:00').getDay() === todayDow)
+  if (sameDow) return sameDow
+
+  const todayMs = new Date(today + 'T12:00:00').getTime()
+  availableDays.sort((a, b) =>
+    Math.abs(new Date(a + 'T12:00:00').getTime() - todayMs) -
+    Math.abs(new Date(b + 'T12:00:00').getTime() - todayMs)
+  )
+  return availableDays[0]
 }
 
 /**
