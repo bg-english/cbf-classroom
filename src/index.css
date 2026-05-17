@@ -4802,3 +4802,36 @@ a { color: var(--accent); text-decoration: none; }
 }
 .cl-delete-btn:hover { background: #fef2f2; }
 .cl-delete-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* ── Progress indicators for ClassroomOS ── */
+@keyframes cbf-spin { to { transform: rotate(360deg); } }
+
+.vs-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+}
+.vs-progress-label {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+.vs-progress-bar {
+  width: 200px;
+  height: 6px;
+  background: #e8edf5;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.vs-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--vs-accent, #2E5598);
+  transition: width 0.5s ease;
+}
+.vs-progress-counter {
+  font-size: 12px;
+  color: #999;
+}

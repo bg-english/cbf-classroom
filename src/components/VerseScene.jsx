@@ -32,7 +32,7 @@ export default function VerseScene({
   const isQuestions = type === 'questions'
   const isVocab     = type === 'vocabulary'
 
-  const { panels, questions, loading, error, cached, hasContent, generate, regenerate } = useVerseComic({
+  const { panels, questions, loading, error, cached, hasContent, imageProgress, generate, regenerate } = useVerseComic({
     type:      isQuestions ? 'questions' : 'comic',
     verseText,
     verseRef,
@@ -83,7 +83,7 @@ export default function VerseScene({
 
       {/* Body depends on state */}
       {loading ? (
-        <LoadingStrip isQuestions={isQuestions} accentColor={accentColor} />
+        <LoadingStrip isQuestions={isQuestions} accentColor={accentColor} phase={1} />
 
       ) : error ? (
         <ErrorBody error={error} onRetry={generate} accentColor={accentColor} />
@@ -131,6 +131,22 @@ export default function VerseScene({
 
       ) : isComic && panels ? (
         // ── Comic strip (progressive — images appear one by one) ─────────────
+        <>
+        {/* Phase 2 progress: panels exist but some images still generating */}
+        {panels.some(p => p.imageUrl === null) && (() => {
+          const doneCount = panels.filter(p => p.imageUrl !== null).length
+          const total = panels.length
+          const pct = Math.round((doneCount / total) * 100)
+          return (
+            <div className="vs-progress-wrap">
+              <div className="vs-progress-label">Generando imagen {doneCount + 1} de {total}…</div>
+              <div className="vs-progress-bar">
+                <div className="vs-progress-fill" style={{ width: `${pct}%` }} />
+              </div>
+              <div className="vs-progress-counter">{doneCount} de {total} listas</div>
+            </div>
+          )
+        })()}
         <div
           className="vs-comic-strip"
           onClick={revealedCount < panels.length ? revealNext : undefined}
@@ -152,6 +168,9 @@ export default function VerseScene({
                     <span className="vs-panel-gen-dot" />
                     <span className="vs-panel-gen-dot" />
                     <span className="vs-panel-gen-dot" />
+                    <span style={{ marginLeft: 6, fontSize: '0.75em', opacity: 0.7 }}>
+                      Imagen {i + 1} de {panels.length}…
+                    </span>
                   </div>
                 )}
               </div>
@@ -169,6 +188,7 @@ export default function VerseScene({
             ↺
           </button>
         </div>
+        </>
 
       ) : null}
 
@@ -198,7 +218,7 @@ function VerseHeader({ badge, verseText, verseRef, accentColor }) {
   )
 }
 
-function LoadingStrip({ isQuestions, accentColor }) {
+function LoadingStrip({ isQuestions, accentColor, phase = 1 }) {
   return (
     <div className="vs-generating">
       <div className="vs-gen-strip">
@@ -211,7 +231,11 @@ function LoadingStrip({ isQuestions, accentColor }) {
         <span className="vs-gen-dot" style={{ background: accentColor }} />
         <span className="vs-gen-dot" style={{ background: accentColor }} />
         <span style={{ marginLeft: 10, opacity: 0.6, fontSize: '0.85em' }}>
-          {isQuestions ? 'Generando preguntas…' : 'Creando tira ilustrada…'}
+          {isQuestions
+            ? 'Generando preguntas…'
+            : phase === 1
+              ? 'Creando guión…'
+              : 'Creando tira ilustrada…'}
         </span>
       </div>
     </div>

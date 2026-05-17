@@ -31,11 +31,12 @@ export function useVerseComic({
   classDate,
   blendTopic = false,
 }) {
-  const [panels,    setPanels]    = useState(null)   // [{imageUrl, caption}]
-  const [questions, setQuestions] = useState(null)
-  const [loading,   setLoading]   = useState(false)  // true only during phase 1
-  const [error,     setError]     = useState(null)
-  const [cached,    setCached]    = useState(false)
+  const [panels,        setPanels]        = useState(null)   // [{imageUrl, caption}]
+  const [questions,     setQuestions]     = useState(null)
+  const [loading,       setLoading]       = useState(false)  // true only during phase 1
+  const [error,         setError]         = useState(null)
+  const [cached,        setCached]        = useState(false)
+  const [imageProgress, setImageProgress] = useState(0)      // 0-3 panels done
   const fetchedRef = useRef(false)
 
   const { getContent, saveContent } = useClassLibrary({ planId, grade, classDate })
@@ -108,6 +109,7 @@ export function useVerseComic({
     setLoading(true)
     setError(null)
     setPanels(null)
+    setImageProgress(0)
 
     let scriptPanels = null
 
@@ -181,6 +183,7 @@ export function useVerseComic({
         finalPanels[i] = { ...finalPanels[i], imageUrl: 'error' }
         setPanels([...finalPanels])
       }
+      setImageProgress(i + 1)
     }
 
     // ── Save to cache when all panels are done ────────────────────────────────
@@ -221,5 +224,5 @@ export function useVerseComic({
     ? !!questions
     : panels?.some(p => p.imageUrl && p.imageUrl !== 'error')
 
-  return { panels, questions, loading, error, cached, hasContent, generate, regenerate }
+  return { panels, questions, loading, error, cached, hasContent, imageProgress, generate, regenerate }
 }
