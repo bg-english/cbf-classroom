@@ -5,7 +5,7 @@ const SUPABASE_URL    = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 
 const IMAGEN_ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict'
+  'https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-fast-generate-001:predict'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -66,7 +66,29 @@ Deno.serve(async (req) => {
     })
   }
 
-  const { prompt, context, aspectRatio = '16:9' } = await req.json()
+  const { prompt, context, aspectRatio = '16:9', listModels } = await req.json()
+
+  // Diagnostic: list available models for this API key
+  if (listModels) {
+    const modelsRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}&pageSize=100`
+    )
+    const modelsData = await modelsRes.json()
+    const imageModels = (modelsData.models || [])
+      .filter((m: { name: string; supportedGenerationMethods?: string[] }) =>
+        m.name.includes('imagen') ||
+        m.name.includes('image') ||
+        (m.supportedGenerationMethods || []).includes('predict')
+      )
+      .map((m: { name: string; supportedGenerationMethods?: string[] }) => ({
+        name: m.name,
+        methods: m.supportedGenerationMethods,
+      }))
+    return new Response(
+      JSON.stringify({ allModels: modelsData.models?.map((m: { name: string }) => m.name), imageModels }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
 
   if (!prompt) {
     return new Response(JSON.stringify({ error: 'prompt is required' }), {
