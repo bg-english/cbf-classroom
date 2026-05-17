@@ -245,46 +245,17 @@ Deno.serve(async (req) => {
   if (!verseText) return json({ error: 'verseText is required' }, 400)
   if (!ANTHROPIC_API_KEY) return json({ error: 'ANTHROPIC_API_KEY not configured' }, 500)
 
-  // ── Questions mode (no images) ────────────────────────────────────────────
+  // ── Questions mode ────────────────────────────────────────────────────────
   if (type === 'questions') {
     const questions = await buildIndicatorQuestions(verseText, verseRef, topic, grade, subject)
     return json({ questions })
   }
 
-  // ── Comic mode ────────────────────────────────────────────────────────────
-  if (!GEMINI_API_KEY) return json({ error: 'GEMINI_API_KEY not configured' }, 500)
-
+  // ── Script-only mode (no images) ─────────────────────────────────────────
+  // Returns panel descriptions + captions so the frontend can generate
+  // images individually via generate-image (faster, progressive UX).
   const script = await buildComicScript(verseText, verseRef, topic, grade, subject)
   if (!script.panels?.length) return json({ error: 'Failed to generate comic script' }, 502)
 
-  // Generate images SEQUENTIALLY with 2s gap to avoid Gemini rate limits
-  const panels: { imageUrl: string | null; caption: string }[] = []
-
-  for (let i = 0; i < script.panels.length; i++) {
-    if (i > 0) await sleep(2000)  // 2s between requests
-
-    const caption = script.panels[i].caption
-    const img     = await generatePanelImage(script.panels[i].scene, grade)
-
-    if (!img) {
-      panels.push({ imageUrl: null, caption })
-      continue
-    }
-
-    // Try Storage upload first; fall back to data URI
-    let imageUrl: string | null = null
-
-    if (planId && classDate) {
-      imageUrl = await uploadPanel(supabaseAdmin, img.base64, img.mimeType, planId, grade, classDate, verseType, i)
-    }
-
-    // Always have a data URI fallback so images render even if Storage fails
-    if (!imageUrl) {
-      imageUrl = `data:${img.mimeType};base64,${img.base64}`
-    }
-
-    panels.push({ imageUrl, caption })
-  }
-
-  return json({ panels, theme: script.theme })
+  return json({ panels: script.panels, theme: script.theme })
 })

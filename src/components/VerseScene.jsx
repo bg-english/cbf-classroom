@@ -43,14 +43,15 @@ export default function VerseScene({
     classDate,
   })
 
-  // For comic: reveal panels one by one on tap
+  // For comic: reveal panels one by one on tap.
+  // Auto-reveal first panel as soon as the structure arrives (even before images load).
   const [revealedCount, setRevealedCount] = useState(0)
   useEffect(() => {
-    if (panels?.length) {
-      const timer = setTimeout(() => setRevealedCount(1), 500)
+    if (panels?.length && revealedCount === 0) {
+      const timer = setTimeout(() => setRevealedCount(1), 300)
       return () => clearTimeout(timer)
     }
-  }, [panels])
+  }, [panels?.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function revealNext() {
     if (panels && revealedCount < panels.length) setRevealedCount(c => c + 1)
@@ -127,7 +128,7 @@ export default function VerseScene({
         </div>
 
       ) : isComic && panels ? (
-        // ── Comic strip ──────────────────────────────────────────────────────
+        // ── Comic strip (progressive — images appear one by one) ─────────────
         <div
           className="vs-comic-strip"
           onClick={revealedCount < panels.length ? revealNext : undefined}
@@ -143,7 +144,11 @@ export default function VerseScene({
                 {panel.imageUrl ? (
                   <img src={panel.imageUrl} alt={panel.caption} className="vs-panel-img" />
                 ) : (
-                  <div className="vs-panel-no-img">🖼</div>
+                  <div className="vs-panel-generating">
+                    <span className="vs-panel-gen-dot" />
+                    <span className="vs-panel-gen-dot" />
+                    <span className="vs-panel-gen-dot" />
+                  </div>
                 )}
               </div>
               <div className="vs-panel-caption">{panel.caption}</div>

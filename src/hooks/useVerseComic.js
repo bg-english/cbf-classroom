@@ -7,15 +7,17 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 /**
  * useVerseComic — manages content for one verse scene.
  *
- * type='comic'     → { panels: [{imageUrl, caption}], theme }
- * type='questions' → { questions: [string, string, string] }
+ * type='comic' generation — two-phase approach for progressive UX:
+ *   Phase 1: Call generate-verse-comic (Claude only, ~3s)
+ *            → get panel descriptions + captions, show structure immediately
+ *   Phase 2: Call generate-image 3× sequentially (proven working function)
+ *            → images appear one by one as each completes (~10-15s each)
+ *   Save: write final panels to cache when all images are done
  *
- * Behavior:
- *  - On mount: checks cache once. If cached, shows it immediately. Does NOT auto-generate.
- *  - generate(): explicit call to create content (triggers API + saves to cache).
- *  - regenerate(): deletes cache entry, then calls generate() again.
+ * type='questions': single Claude call, no images.
  *
- * This way, navigating Next/Prev never triggers API calls — only explicit teacher action does.
+ * Cache-first: on mount, checks generated_class_library.
+ * If cached → instant display. If not → teacher taps "Generar".
  */
 export function useVerseComic({
   type = 'comic',
@@ -28,16 +30,16 @@ export function useVerseComic({
   planId,
   classDate,
 }) {
-  const [panels,    setPanels]    = useState(null)
+  const [panels,    setPanels]    = useState(null)   // [{imageUrl, caption}]
   const [questions, setQuestions] = useState(null)
-  const [loading,   setLoading]   = useState(false)
+  const [loading,   setLoading]   = useState(false)  // true only during phase 1
   const [error,     setError]     = useState(null)
-  const [cached,    setCached]    = useState(false)  // true when content came from cache
+  const [cached,    setCached]    = useState(false)
   const fetchedRef = useRef(false)
 
   const { getContent, saveContent } = useClassLibrary({ planId, grade, classDate })
 
-  // On mount: check cache only — do NOT generate
+  // On mount: check cache only
   useEffect(() => {
     if (!verseText || !planId || !classDate || fetchedRef.current) return
     fetchedRef.current = true
@@ -47,70 +49,141 @@ export function useVerseComic({
 
   async function checkCache() {
     const data = await getContent(verseType)
-    if (!data) return  // no cache — caller will show "Generar" button
+    if (!data) return
 
-    if (type === 'questions' && data.questions) {
+    if (type === 'questions' && data.questions?.length) {
       setQuestions(data.questions)
       setCached(true)
-    } else if (type === 'comic' && data.panels) {
-      setPanels(data.panels)
-      setCached(true)
+    } else if (type === 'comic' && data.panels?.length) {
+      // Only use cache if at least one panel has a real image
+      const hasImages = data.panels.some(p => p.imageUrl)
+      if (hasImages) {
+        setPanels(data.panels)
+        setCached(true)
+      }
     }
   }
 
-  async function callEdgeFunction() {
+  async function getSession() {
     const { data: { session } } = await supabase.auth.getSession()
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-verse-comic`, {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${session?.access_token}`,
-      },
-      body: JSON.stringify({
-        type,
-        verseText,
-        verseRef:  verseRef  || '',
-        verseType: verseType || 'verse_comic',
-        topic:     topic     || 'the lesson',
-        grade:     grade     || 'K-12',
-        subject:   subject   || 'class',
-        planId,
-        classDate,
-      }),
-    })
+    return session
+  }
 
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || 'Generation failed')
-    return data
+  // ── Questions generation ──────────────────────────────────────────────────
+
+  async function generateQuestions() {
+    setLoading(true)
+    setError(null)
+    try {
+      const session = await getSession()
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-verse-comic`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+        body: JSON.stringify({
+          type: 'questions',
+          verseText, verseRef: verseRef || '', verseType: verseType || 'indicator_questions',
+          topic: topic || 'the lesson', grade: grade || 'K-12', subject: subject || 'class',
+          planId, classDate,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to generate questions')
+      const q = data.questions || []
+      await saveContent(verseType, { questions: q })
+      setQuestions(q)
+      setCached(true)
+    } catch (e) {
+      setError(e.message || 'Error generating questions')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ── Comic generation — two phases ─────────────────────────────────────────
+
+  async function generateComic() {
+    setLoading(true)
+    setError(null)
+    setPanels(null)
+
+    let scriptPanels = null
+
+    // ── Phase 1: Claude script (~3-5s) ───────────────────────────────────────
+    try {
+      const session = await getSession()
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-verse-comic`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+        body: JSON.stringify({
+          type: 'comic',
+          verseText, verseRef: verseRef || '', verseType: verseType || 'verse_comic',
+          topic: topic || 'the lesson', grade: grade || 'K-12', subject: subject || 'class',
+          planId, classDate,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to generate script')
+      if (!data.panels?.length) throw new Error('No panels returned from script generation')
+      scriptPanels = data.panels  // [{scene, caption}]
+    } catch (e) {
+      setError(e.message || 'Error generating comic script')
+      setLoading(false)
+      return
+    }
+
+    // ── Show structure immediately — panels with captions, images loading ────
+    const initialPanels = scriptPanels.map(p => ({ imageUrl: null, caption: p.caption }))
+    setPanels([...initialPanels])
+    setLoading(false)  // stop the "big" loading state; images load progressively
+
+    // ── Phase 2: generate-image for each panel (sequential, proven working) ──
+    const finalPanels = [...initialPanels]
+
+    for (let i = 0; i < scriptPanels.length; i++) {
+      try {
+        const session = await getSession()
+        const imagePrompt =
+          `${scriptPanels[i].scene}. ` +
+          `Flat vector illustration, vibrant warm colors, educational comic panel style, ` +
+          `safe for ${grade || 'K-12'} students, diverse characters, ` +
+          `NO text or letters anywhere in the image, white background, clean lines.`
+
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+          body: JSON.stringify({
+            prompt: imagePrompt,
+            context: { topic: topic || 'lesson', grade: grade || 'K-12' },
+            aspectRatio: '4:3',
+          }),
+        })
+        const imgData = await res.json()
+
+        if (res.ok && imgData.imageBase64) {
+          finalPanels[i] = {
+            ...finalPanels[i],
+            imageUrl: `data:${imgData.mimeType || 'image/png'};base64,${imgData.imageBase64}`,
+          }
+          setPanels([...finalPanels])  // update UI after each image
+        }
+      } catch {
+        // Panel stays with imageUrl: null — 🖼 placeholder shown
+      }
+    }
+
+    // ── Save to cache when all panels are done ────────────────────────────────
+    const hasAnyImage = finalPanels.some(p => p.imageUrl)
+    if (hasAnyImage) {
+      await saveContent(verseType, { panels: finalPanels })
+      setCached(true)
+    }
   }
 
   /** Explicit generation — called by teacher tapping "Generar" */
   async function generate() {
     if (loading) return
-    setLoading(true)
-    setError(null)
-    setPanels(null)
-    setQuestions(null)
-
-    try {
-      const data = await callEdgeFunction()
-
-      if (type === 'questions') {
-        const q = data.questions || []
-        await saveContent(verseType, { questions: q })
-        setQuestions(q)
-        setCached(true)
-      } else {
-        const p = data.panels || []
-        await saveContent(verseType, { panels: p, theme: data.theme })
-        setPanels(p)
-        setCached(true)
-      }
-    } catch (e) {
-      setError(e.message || 'Error generating content')
-    } finally {
-      setLoading(false)
-    }
+    if (type === 'questions') return generateQuestions()
+    return generateComic()
   }
 
   /** Regenerate — deletes cache + generates fresh */
@@ -123,15 +196,16 @@ export function useVerseComic({
     await supabase
       .from('generated_class_library')
       .delete()
-      .eq('plan_id',    planId)
-      .eq('grade',      grade)
-      .eq('class_date', classDate)
+      .eq('plan_id',     planId)
+      .eq('grade',       grade)
+      .eq('class_date',  classDate)
       .eq('content_key', verseType)
 
-    await generate()
+    fetchedRef.current = false
+    generate()
   }
 
-  const hasContent = type === 'questions' ? !!questions : !!panels
+  const hasContent = type === 'questions' ? !!questions : panels?.some(p => p.imageUrl)
 
   return { panels, questions, loading, error, cached, hasContent, generate, regenerate }
 }
