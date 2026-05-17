@@ -75,11 +75,11 @@ CRITICAL: The scenes must illustrate THIS SPECIFIC VERSE, not generic school sce
 - If the verse talks about "planting seeds", show someone planting and harvesting.
 - ALWAYS connect the visual directly to the verse's actual words and meaning.
 
-Rules for scene descriptions:
-- Describe ONLY what is VISIBLE: people, objects, colors, setting, actions.
+Rules for scene descriptions (these go directly to an image generator — follow exactly):
+- Describe ONLY what is VISIBLE: people, animals, objects, colors, setting, light, actions.
 - Example: "A shepherd in a green field holding a small lamb, flock of sheep behind him, blue sky, warm sunlight"
 - NO abstract concepts, NO emotions as words, NO narrative language.
-- NO words like: temptation, challenge, struggle, conflict, darkness, sin, fear.
+- NEVER use these words in scene descriptions: God, Lord, Spirit, Holy, divine, sacred, angel, heaven, prayer, worship, sin, temptation, darkness, evil. Instead describe the PHYSICAL visual equivalent (e.g. "a glowing dove" not "the Holy Spirit", "bright sunlight breaking through clouds" not "God's light").
 - All scenes must be POSITIVE, warm, and safe for children.
 - Keep each scene description under 40 words. Be SPECIFIC and DETAILED.
 
@@ -140,10 +140,10 @@ CRITICAL: Both the verse content AND the topic "${topic}" must be VISUALLY PRESE
 - If the topic is "math" and the verse talks about "wisdom", show students solving math with joy and discovery.
 - The images must make the CONNECTION between verse and topic OBVIOUS to students.
 
-Rules for scene descriptions:
-- Describe ONLY what is VISIBLE: people, objects, colors, setting, actions.
+Rules for scene descriptions (these go directly to an image generator — follow exactly):
+- Describe ONLY what is VISIBLE: people, animals, objects, colors, setting, light, actions.
+- NEVER use these words in scene descriptions: God, Lord, Spirit, Holy, divine, sacred, angel, heaven, prayer, worship, sin, temptation, darkness, evil. Instead describe the PHYSICAL visual equivalent (e.g. "a glowing dove" not "the Holy Spirit", "bright rays breaking through clouds" not "God's light").
 - NO abstract concepts, NO emotions as words, NO narrative language.
-- NO words like: temptation, challenge, struggle, conflict, darkness, sin, fear.
 - All scenes must be POSITIVE, warm, and safe for children.
 - Keep each scene description under 40 words. Be SPECIFIC and DETAILED.
 

@@ -4088,8 +4088,8 @@ a { color: var(--accent); text-decoration: none; }
   height: 100%;
   width: 100%;
   overflow: hidden;
-  padding: clamp(16px, 2.5vh, 32px) clamp(20px, 3vw, 48px);
-  gap: clamp(12px, 1.8vh, 24px);
+  padding: clamp(10px, 1.5vh, 24px) clamp(16px, 2.5vw, 40px);
+  gap: clamp(6px, 1vh, 14px);
   box-sizing: border-box;
   position: relative;
 }
@@ -4098,8 +4098,23 @@ a { color: var(--accent); text-decoration: none; }
 
 .vs-verse-header {
   border-left: 5px solid var(--vs-accent, var(--accent));
-  padding-left: clamp(14px, 2vw, 24px);
+  padding-left: clamp(10px, 1.5vw, 20px);
   flex-shrink: 0;
+  /* Hard cap — verse never steals space from the images */
+  max-height: 30vh;
+  overflow: hidden;
+  position: relative;
+}
+/* Fade gradient when verse is taller than 30vh */
+.vs-verse-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: linear-gradient(transparent, var(--bg-100, #fff));
+  pointer-events: none;
 }
 
 .vs-verse-badge {
@@ -4115,10 +4130,10 @@ a { color: var(--accent); text-decoration: none; }
 }
 
 .vs-verse-text {
-  margin: 0 0 8px;
-  font-size: clamp(1.1rem, 2.4vw, 2rem);
+  margin: 0 0 6px;
+  font-size: clamp(0.85rem, 1.5vw, 1.3rem);
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.25;
   color: var(--text-primary);
   font-style: italic;
 }
@@ -4135,11 +4150,12 @@ a { color: var(--accent); text-decoration: none; }
 .vs-comic-strip {
   display: flex;
   flex: 1;
-  gap: clamp(10px, 1.5vw, 20px);
+  gap: clamp(8px, 1.2vw, 16px);
   align-items: stretch;
   cursor: pointer;
   position: relative;
-  min-height: 0;
+  /* Always give images enough room regardless of verse length */
+  min-height: max(180px, 42vh);
 }
 
 .vs-panel {
@@ -4817,11 +4833,14 @@ a { color: var(--accent); text-decoration: none; }
 @keyframes cbf-spin { to { transform: rotate(360deg); } }
 
 .vs-progress-wrap {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   padding: 20px;
+  min-height: max(180px, 42vh);
 }
 .vs-progress-label {
   font-size: 13px;

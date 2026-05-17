@@ -63,11 +63,13 @@ export function useVerseComic({
         setQuestions(data.questions)
         setCached(true)
       } else if (type === 'comic' && data.panels?.length) {
-        const hasImages = data.panels.some(p => p.imageUrl)
-        if (hasImages) {
+        // Only use cache when every panel has a good image (no 'error' placeholders)
+        const allGood = data.panels.every(p => p.imageUrl && p.imageUrl !== 'error')
+        if (allGood) {
           setPanels(data.panels)
           setCached(true)
         }
+        // Panels with errors → skip cache → teacher taps Generar → retry logic runs
       }
     } finally {
       setCacheChecking(false)
@@ -194,9 +196,9 @@ export function useVerseComic({
       setImageProgress(i + 1)
     }
 
-    // ── Save to cache when all panels are done ────────────────────────────────
-    const hasAnyImage = finalPanels.some(p => p.imageUrl && p.imageUrl !== 'error')
-    if (hasAnyImage) {
+    // ── Save to cache only when ALL panels have a good image ─────────────────
+    const allGood = finalPanels.every(p => p.imageUrl && p.imageUrl !== 'error')
+    if (allGood) {
       await saveContent(verseType, { panels: finalPanels })
       setCached(true)
     }
