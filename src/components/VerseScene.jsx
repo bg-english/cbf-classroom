@@ -32,7 +32,7 @@ export default function VerseScene({
   const isQuestions = type === 'questions'
   const isVocab     = type === 'vocabulary'
 
-  const { panels, questions, loading, error, cached, hasContent, imageProgress, generate, regenerate } = useVerseComic({
+  const { panels, questions, loading, error, cached, hasContent, imageProgress, cacheChecking, generate, regenerate } = useVerseComic({
     type:      isQuestions ? 'questions' : 'comic',
     verseText,
     verseRef,
@@ -87,6 +87,14 @@ export default function VerseScene({
 
       ) : error ? (
         <ErrorBody error={error} onRetry={generate} accentColor={accentColor} />
+
+      ) : cacheChecking ? (
+        // ── Checking cache — show dots instead of the Generar button ─────────
+        <div className="vs-cache-loading">
+          <span className="vs-gen-dot" style={{ background: accentColor }} />
+          <span className="vs-gen-dot" style={{ background: accentColor }} />
+          <span className="vs-gen-dot" style={{ background: accentColor }} />
+        </div>
 
       ) : !hasContent ? (
         // ── Empty state: teacher must tap Generar ────────────────────────────

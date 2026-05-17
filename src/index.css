@@ -4417,6 +4417,16 @@ a { color: var(--accent); text-decoration: none; }
   min-height: 0;
 }
 
+/* ── Cache loading — shown while checking cache on mount ─────────────────── */
+
+.vs-cache-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
 /* ── Empty state — teacher must tap Generar ──────────────────────────────── */
 
 .vs-empty {

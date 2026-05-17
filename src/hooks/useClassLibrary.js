@@ -5,13 +5,28 @@ import { supabase } from '../utils/supabase'
  *
  * Each piece of content is keyed by (planId, grade, classDate, contentKey).
  * This is a plain-function hook (no React state) — callers control their own state.
+ *
+ * _memCache: module-level Map so navigating back to a verse scene is instant
+ * (no repeated DB queries within the same browser session).
+ * Cache is keyed as `planId|grade|classDate|contentKey`.
  */
+
+const _memCache = new Map()
+
 export function useClassLibrary({ planId, grade, classDate }) {
+  function _key(contentKey) {
+    return `${planId}|${grade}|${classDate}|${contentKey}`
+  }
+
   /**
    * Look up cached content. Returns content_data object or null if not found.
+   * Hits memory first — DB only on cold access.
    */
   async function getContent(contentKey) {
     if (!planId || !grade || !classDate || !contentKey) return null
+
+    const key = _key(contentKey)
+    if (_memCache.has(key)) return _memCache.get(key)
 
     const { data, error } = await supabase
       .from('generated_class_library')
@@ -22,16 +37,19 @@ export function useClassLibrary({ planId, grade, classDate }) {
       .eq('content_key', contentKey)
       .single()
 
-    if (error || !data) return null
-    return data.content_data
+    const result = (error || !data) ? null : data.content_data
+    _memCache.set(key, result)
+    return result
   }
 
   /**
    * Save generated content to the library.
-   * Uses upsert so re-running generation overwrites stale data.
+   * Updates memory cache immediately, then persists to DB.
    */
   async function saveContent(contentKey, contentData) {
     if (!planId || !grade || !classDate || !contentKey) return
+
+    _memCache.set(_key(contentKey), contentData)
 
     await supabase
       .from('generated_class_library')

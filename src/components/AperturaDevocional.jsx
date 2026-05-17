@@ -5,14 +5,12 @@ import VerseScene from './VerseScene'
  *
  * Renders one full-screen "scene" at a time (no scroll).
  * The teacher taps Next/Prev in the nav bar to advance through scenes.
- * Scenes are built from available verse data in the plan + classroomData.
  *
- * Scene order:
- *   1. Year Verse   → comic strip
- *   2. Month Verse  → comic strip
- *   3. Guide Verse  → comic strip  (if exists)
- *   4. Indicator Verse → discussion questions
- *   5. Vocabulary   → existing section content
+ * Scene order (exactly 3 biblical scenes + optional vocabulary):
+ *   1. Principio del Año   → comic strip
+ *   2. Principio del Mes   → comic strip
+ *   3. Versículo del Indicador → comic strip (verse + lesson topic blended)
+ *   4. Vocabulary          → existing section content (if any)
  */
 export default function AperturaDevocional({
   classroomData, plan, dayContent,
@@ -82,19 +80,7 @@ export function buildM1Scenes({ classroomData, plan, dayContent, t }) {
     })
   }
 
-  // 3 — Guide verse (from plan)
-  const guideVerse = plan?.content?.verse
-  if (guideVerse?.text) {
-    scenes.push({
-      type:      'comic',
-      verseType: 'verse_guide_comic',
-      badge:     t?.verseGuide || 'Versículo Guía',
-      verseText: guideVerse.text,
-      verseRef:  guideVerse.ref || '',
-    })
-  }
-
-  // 4a — Indicator verse → comic (verse + lesson topic blended)
+  // 3 — Indicator verse (Versículo del Indicador — verse + lesson topic blended)
   const indicatorText = classroomData?.biblicalPrinciple
     || plan?.content?.objetivo?.principio
     || null
@@ -102,25 +88,14 @@ export function buildM1Scenes({ classroomData, plan, dayContent, t }) {
     scenes.push({
       type:      'comic',
       verseType: 'indicator_comic',
-      badge:     t?.principleIndicator || 'Principio Bíblico del Indicador',
+      badge:     t?.principleIndicator || 'Versículo del Indicador',
       verseText: indicatorText,
       verseRef:  classroomData?.indicatorVerseRef || '',
-      blendTopic: true,  // signals: mix verse + lesson topic in images
+      blendTopic: true,
     })
   }
 
-  // 4b — Indicator verse → discussion questions
-  if (indicatorText) {
-    scenes.push({
-      type:      'questions',
-      verseType: 'indicator_questions',
-      badge:     t?.principleIndicator || 'Principio Bíblico del Indicador',
-      verseText: indicatorText,
-      verseRef:  classroomData?.indicatorVerseRef || '',
-    })
-  }
-
-  // 5 — Vocabulary (existing lesson content for Moment 1)
+  // 4 — Vocabulary (existing lesson content for Moment 1)
   const vocabHtml = dayContent?.sections?.subject?.content
   if (vocabHtml && vocabHtml !== '<p></p>') {
     scenes.push({
